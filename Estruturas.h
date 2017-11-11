@@ -1,35 +1,49 @@
 #include <stdio.h>
 
-typedef struct Player {
+typedef struct Data {
+
+}, Data; //Might need it or not.
+
+typedef struct client {
+  int PID;
+  char username[50];
+},Client;
+
+typedef struct Bomb {
+  int nBombs;
+  int posx,posy; // TODO Redundant ?
+  int bombSize;
+  int triggerTime; //TODO: maybe ?
+
+},Bomb;
+
+typedef struct player {
   int id;
-  int x,y;
+  int posx,posy;
+  Bomb nuke;
+  Bomb grenade;
+  //int life quantity TODO: Consider
+},Player;
 
-};
+typedef struct enemy {
+    int health;
+    int posx,posy;
+},Enemy;
 
-typedef union objecto {
+typedef struct exit {
+  int open;
+},Exit;
 
-  char parede; //Indestructivel(◘) ou Destrutivel (D)
-  char bonus; //Um dos bonus (a averiguar);
-  Inimigo inimigo; //TODO Pode ser alterado
-  Player jogador;
-  Porta saida; //TODO Pensar no bonus moedas classificação
-  Bomba bomba; //Megabomba ou bombinha (piquinina)
+typedef union block {
+  char wall;
+  char bonus;
+  Enemy enemy;
+  Player player;
+  Exit exit;
+  Bomb bomb;
+} ,Block;
 
-} ,Objectos;
-
-
-typedef struct Quadrado {
-  int x,y;
-
-  Objectos objecto; //TODO repensar este nome de caralhinho
-};
-
-// Estruturas:
-
-/*
- 1 - Bocados de mapa ( Objecto )
-
- estrutura - xy
-  union - 1 dos campos
-
-*/
+typedef struct object {
+  int type;
+  Block block;
+},Object;
