@@ -1,8 +1,11 @@
 #include <stdio.h>
 
-typedef struct Data {
+typedef struct Game {
+  int PID;
+  Segment map[30][60];
+  Client clients[20];
 
-}, Data; //Might need it or not.
+}, Game; //Might need it or not.
 
 typedef struct client {
   int PID;
@@ -13,6 +16,7 @@ typedef struct Bomb {
   int nBombs;
   int posx,posy; // TODO Redundant ?
   int bombSize;
+  int explosionTime;
   int triggerTime; //TODO: maybe ?
 
 },Bomb;
@@ -20,19 +24,28 @@ typedef struct Bomb {
 typedef struct player {
   int id;
   int posx,posy;
+  int score;
   Bomb nuke;
   Bomb grenade;
+
   //int life quantity TODO: Consider
 },Player;
 
 typedef struct enemy {
     int health;
     int posx,posy;
+    char drop; //TODO ou struct, rever.
 },Enemy;
 
 typedef struct exit {
   int open;
+  int posx,posy;
 },Exit;
+
+typedef struct Obective {
+  int value;
+  int posx,posy;
+}, Objective;
 
 typedef union block {
   char wall;
@@ -41,9 +54,10 @@ typedef union block {
   Player player;
   Exit exit;
   Bomb bomb;
+  O
 } ,Block;
 
-typedef struct object {
+typedef struct Segment {
   int type;
   Block block;
-},Object;
+},Segment;
