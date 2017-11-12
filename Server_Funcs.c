@@ -63,7 +63,6 @@ void console()
       if(handleCommand(buffer) < 0)
       {
         invalidCommand(buffer);
-        setbuf(stdin, NULL);
       }
 
   }

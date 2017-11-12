@@ -1,29 +1,27 @@
 
 typedef struct Game {
   int PID;
-  Segment *map; //mapa 30*60
+  Segment *map; // 20x30
   Client *clients[20];
 
-}, Game; //Might need it or not.
+}, Game;
 
 typedef struct client {
   int PID;
   char username[50];
-  Player player;
+  char password[50];
+  Player *player;
 
 },Client;
 
 typedef struct Bomb {
   int nBombs;
-  int posx,posy; // TODO Redundant ?
-  int bombSize;
-  int explosionTime;
-  int triggerTime; //TODO: maybe ?
-
+  int posx,posy;
+  int explosionSize; //Tamanho explosao
 },Bomb;
 
 typedef struct player {
-  int id;
+  int PID;
   int posx,posy;
   int score;
   Bomb nuke;
@@ -32,9 +30,8 @@ typedef struct player {
   //int life quantity TODO: Consider
 },Player;
 
-//TODO: struct Explosao
-
 typedef struct enemy {
+    int ID;
     int posx,posy;
     char drop; //TODO ou struct, rever.
 },Enemy;
@@ -44,14 +41,15 @@ typedef struct exit {
   int posx,posy;
 },Exit;
 
-typedef struct Obective {
+typedef struct Objective {
   int value;
   int posx,posy;
 }, Objective;
 
-typedef union block {
+typedef union block { //falta testar - Tagged Union - Possivel alteração
   char wall;
   char bonus;
+  Objective objective;
   Enemy *enemy;
   Player *player;
   Exit exit;
@@ -60,6 +58,6 @@ typedef union block {
 } ,Block;
 
 typedef struct Segment {
-  int type;
+  int type; //Pode alterar
   Block block;
 },Segment;
