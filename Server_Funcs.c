@@ -26,6 +26,8 @@ int handleCommand(char * call)
 
   command = strtok(call, " ");
 
+
+
   if(strcmp(command,"help") == 0)
     helpCommand();
 
