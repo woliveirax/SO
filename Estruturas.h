@@ -1,14 +1,16 @@
 
 typedef struct Game {
   int PID;
-  Segment map[30][60];
-  Client clients[20];
+  Segment *map; //mapa 30*60
+  Client *clients[20];
 
 }, Game; //Might need it or not.
 
 typedef struct client {
   int PID;
   char username[50];
+  Player player;
+
 },Client;
 
 typedef struct Bomb {
@@ -30,8 +32,9 @@ typedef struct player {
   //int life quantity TODO: Consider
 },Player;
 
+//TODO: struct Explosao
+
 typedef struct enemy {
-    int health;
     int posx,posy;
     char drop; //TODO ou struct, rever.
 },Enemy;
@@ -49,11 +52,11 @@ typedef struct Obective {
 typedef union block {
   char wall;
   char bonus;
-  Enemy enemy;
-  Player player;
+  Enemy *enemy;
+  Player *player;
   Exit exit;
   Bomb bomb;
-  O
+
 } ,Block;
 
 typedef struct Segment {
