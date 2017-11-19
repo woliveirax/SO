@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <string.h>
-
-#define buffer_size 300
+#include "server_funcs.h"
 
 void helpCommand()
 {
@@ -37,7 +31,7 @@ char ** getComandAndArguments(char * string, char ** command)
   int argQuant = 0;
 
   //NOTE ARGUMENT AND ARGUMENTS
-  for (*command = strtok(string," "),argument = strtok(NULL, " ");argument != NULL;)
+  for (*command = strtok(string," \n"),argument = strtok(NULL, " \n");argument != NULL;)
   {
     aux = realloc(arguments,sizeof(char *) * (argQuant + 1));
     if(aux != NULL)
@@ -54,7 +48,7 @@ char ** getComandAndArguments(char * string, char ** command)
     strcpy(arguments[argQuant],argument);
 
     argQuant++;
-    argument = strtok(NULL, " ");
+    argument = strtok(NULL, " \n");
   }
 
   aux = realloc(arguments,sizeof(char *) * (argQuant + 1)); //NOTE INSERE NULL NO ULTIMO PONTEIRO DA STRING PARA SABER O FIM.
@@ -108,19 +102,13 @@ void console()
 
   while(1)
   {
-      printf("\n$: ");
+    printf("\n$: ");
 
-      fgets(buffer, buffer_size, stdin);
+    fgets(buffer, buffer_size, stdin);
 
-      if(handleCommand(buffer) < 0)
-      {
-        invalidCommand(buffer);
-      }
-
+    if(handleCommand(buffer) < 0)
+    {
+      invalidCommand(buffer);
+    }
   }
-}
-
-int main(int argc, char *argv[])
-{
-  console();
 }
