@@ -1,5 +1,6 @@
 #include "server_funcs.h"
 
+
 void helpCommand()
 {
   printf("\n\n\n");
@@ -13,15 +14,16 @@ void helpCommand()
   printf("\n\nmap [nome do ficheiro]\n\t-Muda o mapa do jogo, a mudanca sera feita no fim do jogo atual, se este estiver a decorrer.\n");
 }
 
+
 void freeSpace(char **array)
 {
-  //TODO falta implementar a função q faz free do array de strings.
   for(int i = 0;array[i] != NULL;i++)
   {
     free(array[i]);
   }
   free(array);
 }
+
 
 char ** getComandAndArguments(char * string, char ** command)
 {
@@ -57,6 +59,7 @@ char ** getComandAndArguments(char * string, char ** command)
 
   return arguments;
 }
+
 
 int handleCommand(char * call)
 {
