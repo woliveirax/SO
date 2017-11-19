@@ -1,5 +1,6 @@
 #include "server_funcs.h"
 
+
 void helpCommand()
 {
   printf("\n\n\n");
@@ -13,15 +14,16 @@ void helpCommand()
   printf("\n\nmap [nome do ficheiro]\n\t-Muda o mapa do jogo, a mudanca sera feita no fim do jogo atual, se este estiver a decorrer.\n");
 }
 
+
 void freeSpace(char **array)
 {
-  //TODO falta implementar a função q faz free do array de strings.
   for(int i = 0;array[i] != NULL;i++)
   {
     free(array[i]);
   }
   free(array);
 }
+
 
 char ** getComandAndArguments(char * string, char ** command)
 {
@@ -37,7 +39,10 @@ char ** getComandAndArguments(char * string, char ** command)
     if(aux != NULL)
       arguments = aux;
     else
+    {
+      freeSpace(arguments);
       return NULL;
+    }
 
     arguments[argQuant] = malloc(50 * sizeof(char));
     if(arguments[argQuant] == NULL)
@@ -58,24 +63,30 @@ char ** getComandAndArguments(char * string, char ** command)
   return arguments;
 }
 
-int handleCommand(char * call)
+
+int handleCommand(char * str)
 {
   char *commands[] = {"add","users","kick","game","shutdown","map"};
   char *command;
   char **arguments;
 
-  arguments = getComandAndArguments(call,&command);
+  arguments = getComandAndArguments(str,&command);
+
+  //command = strcat(".\\",command);
 
   if(strcmp(command,"help") == 0)
   {
       helpCommand();
-      return 0; //TODO meter isto no fork
+      return 0;
   }
 
   for(int i = 0; i < 6;i++)
   {
     if(strcmp(command,commands[i]) == 0)
     {
+      //if(fork() == 0)
+      //TODO STRCAT AQUI para juntar caminho ao commando
+       execvp((const char *)"server_support_funcs/add",(const char **) arguments);
       //exit(0); //TODO falta fazer o fork aqui com os comandos
       freeSpace(arguments);
       return 0;
