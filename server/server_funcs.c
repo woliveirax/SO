@@ -1,20 +1,5 @@
 #include "server_funcs.h"
 
-
-void helpCommand()
-{
-  printf("\n\n\n");
-  printf("Comandos Disponiveis:\n");
-
-  printf("\nadd [username] [password]\n\t-Adiciona Utilizador");
-  printf("\n\nusers - Mostra lista de jogadores ativos");
-  printf("\n\nkick [username]\n\t-Remove um jogador do jogo");
-  printf("\n\ngame\n\t-Mostra informacoes do jogo corrente:\n\t\t-Jogadores e as suas pontuações;\n\t\t-Objetos objetivos a apanhar");
-  printf("\n\nshutdown \n\t-Termina o jogo atual e desliga o servidor.");
-  printf("\n\nmap [nome do ficheiro]\n\t-Muda o mapa do jogo, a mudanca sera feita no fim do jogo atual, se este estiver a decorrer.\n");
-}
-
-
 void freeSpace(char **array)
 {
   for(int i = 0;array[i] != NULL;i++)
@@ -84,9 +69,9 @@ char ** getComandAndArguments(char * string, char ** command)
 
 char * getPath (char * command)
 {
-  char *path = malloc( sizeof(char) * (strlen(command) + strlen(functions_path) + 1));
+  char *path = malloc( sizeof(char) * (strlen(command) + 3));
 
-  strcat(path,(const char *) functions_path);
+  strcat(path,(const char *) "./");
   strcat(path,(const char *) command);
 
   return path;
@@ -95,29 +80,25 @@ char * getPath (char * command)
 
 int handleCommand(char * str)
 {
-  char *commands[] = {"add","users","kick","game","shutdown","map"};
+  char *commands[] = {"add","users","kick","game","shutdown","map","help",NULL};
   char *command;
   char **arguments;
 
   arguments = getComandAndArguments(str,&command);
 
-  for(int i = 0; arguments[i] != NULL; i++)
-    puts(arguments[i]);
-
-  if(strcmp(command,"help") == 0) // TODO meter isto no fork
-  {
-      helpCommand();
-      return 0;
-  }
-
-  for(int i = 0; i < 6;i++)
+  for(int i = 0; commands[i] != NULL;i++)
   {
     if(strcmp(command,commands[i]) == 0)
     {
       command = getPath(command);
 
       if(fork() == 0)
+      {
+        if(chdir("../server_support_funcs") < 0)
+          perror("Erro chdir: ");
+
         execvp(command,arguments);
+      }
       else
         wait(NULL);
 
@@ -143,13 +124,12 @@ void console()
 
   setbuf(stdout,NULL);
   printf("Server Console: [Admin]\n\n");
-  helpCommand();
 
   while(1)
   {
     printf("\n$: ");
 
-    fgets(buffer, buffer_size, stdin);
+    fscanf(stdin," %299[^\n]",buffer);
 
     if(handleCommand(buffer) < 0)
     {
