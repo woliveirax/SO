@@ -6,7 +6,11 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
+
+#define functions_path "./server_support_funcs/"
 #define buffer_size 300
 
 //Data handling functions
