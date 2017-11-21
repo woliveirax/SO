@@ -1,31 +1,30 @@
-
 typedef struct Game {
-  int PID;                // Process ID do jogo
-  Segment *map; // 20x30  // Ponteiro para o mapa que será alocado antes do jogo começar
-  Client *clients[20];    //Ponteiro para os clientes que estao ao jogar
+  int PID;
+  Segment *map; // 20x30
+  Client *clients[20];
 
 }, Game;
 
 typedef struct client {
-  int PID;    // Process ID do cliente
-  char username[50];  //Username do cliente
-  char password[50];  //Password do cliente
-  Player *player;     //Ponteiro para o jogador -- Eventualmente para a funcao kick
+  int PID;
+  char username[50];
+  char password[50];
+  Player *player;
 
 },Client;
 
 typedef struct Bomb {
-  int nBombs;       //Numero de bombas
-  int posx,posy;    //Posicao da bomba
-  int explosionSize; //Tamanho explosao //Para alterar entra megabomba e bombinha
+  int nBombs;
+  int posx,posy;
+  int explosionSize; //Tamanho explosao
 },Bomb;
 
 typedef struct player {
-  int PID;          //Process ID do jogador
-  int posx,posy;    //Posicao do jogador
-  int score;        //Pontuação do jogador
-  Bomb nuke;        //Megabomb
-  Bomb grenade;     //Bombinha
+  int PID;
+  int posx,posy;
+  int score;
+  Bomb nuke;
+  Bomb grenade;
 
   //int life quantity TODO: Consider
 },Player;
@@ -42,8 +41,8 @@ typedef struct exit {
 },Exit;
 
 typedef struct Objective {
-  int value;          //Valor do objetivo
-  int posx,posy;      //Posicao do objetivo
+  int value;
+  int posx,posy;
 }, Objective;
 
 
@@ -51,13 +50,13 @@ typedef struct Objective {
 //Tagged union de maneira a ser somente um dos tipos a existerem em cada segmento do mapa
 //Polpando assim a quantidade de dados a enviar p o processo
 typedef union block { //falta testar - Tagged Union - Possivel alteração
-  char wall;          //Parede (Tipo, A ,B ,C ) Esta em pensamento
-  char bonus;         //Bonus (aumento da bomba ou n de bombas ou vida) --- esta em pensamento
-  Objective objective; //Objetivos
-  Enemy *enemy;       //Ponteiro para monstro
-  Player *player;     //Ponteiro para jogador
-  Exit exit;          //Saida do labirinto que podera estar aberta ou fechada
-  Bomb bomb;          //Bomba deixada por um jogador.
+  char wall;
+  char bonus;
+  Objective objective;
+  Enemy *enemy;
+  Player *player;
+  Exit exit;
+  Bomb bomb;
 
 } ,Block;
 
@@ -65,3 +64,14 @@ typedef struct Segment {
   int type; //tipo de dados que esta em bloco
   Block block;  //Dados do segmento
 },Segment;
+
+typedef struct server {
+  Client *clientes;
+  Game *Game;
+}, Server;
+
+typedef struct topTen {
+  int pos;
+  char nome[100];
+  int score;
+}, Top10;
