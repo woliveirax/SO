@@ -24,7 +24,7 @@ void freeSpace(char **array)
   free(array);
 }
 
-
+//TODO tentar melhorar se houver tempo;
 char ** getComandAndArguments(char * string, char ** command)
 {
   char *argument;
@@ -32,8 +32,26 @@ char ** getComandAndArguments(char * string, char ** command)
   char **aux;
   int argQuant = 0;
 
+  *command = strtok(string," \n");
+
+  aux = realloc(arguments,sizeof(char *) * (argQuant + 1));
+  if(aux != NULL)
+    arguments = aux;
+  else
+    return NULL;
+
+  arguments[argQuant] = malloc(50 * sizeof(char));
+  if(arguments[argQuant] == NULL)
+  {
+    free(arguments);
+    return NULL;
+  }
+
+  strcpy(arguments[argQuant],*command);
+  argQuant++;
+
   //NOTE ARGUMENT AND ARGUMENTS
-  for (*command = strtok(string," \n"),argument = strtok(NULL, " \n");argument != NULL;)
+  for (argument = strtok(NULL, " \n");argument != NULL;)
   {
     aux = realloc(arguments,sizeof(char *) * (argQuant + 1));
     if(aux != NULL)
@@ -64,6 +82,17 @@ char ** getComandAndArguments(char * string, char ** command)
 }
 
 
+char * getPath (char * command)
+{
+  char *path = malloc( sizeof(char) * (strlen(command) + strlen(functions_path) + 1));
+
+  strcat(path,(const char *) functions_path);
+  strcat(path,(const char *) command);
+
+  return path;
+}
+
+
 int handleCommand(char * str)
 {
   char *commands[] = {"add","users","kick","game","shutdown","map"};
@@ -72,9 +101,10 @@ int handleCommand(char * str)
 
   arguments = getComandAndArguments(str,&command);
 
-  //command = strcat(".\\",command);
+  for(int i = 0; arguments[i] != NULL; i++)
+    puts(arguments[i]);
 
-  if(strcmp(command,"help") == 0)
+  if(strcmp(command,"help") == 0) // TODO meter isto no fork
   {
       helpCommand();
       return 0;
@@ -84,10 +114,14 @@ int handleCommand(char * str)
   {
     if(strcmp(command,commands[i]) == 0)
     {
-      //if(fork() == 0)
-      //TODO STRCAT AQUI para juntar caminho ao commando
-       execvp((const char *)"server_support_funcs/add",(const char **) arguments);
-      //exit(0); //TODO falta fazer o fork aqui com os comandos
+      command = getPath(command);
+
+      if(fork() == 0)
+        execvp(command,arguments);
+      else
+        wait(NULL);
+
+      free(command);
       freeSpace(arguments);
       return 0;
     }
