@@ -6,15 +6,9 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define file "users.data"
+#define file "../Data/users.data"
 #define buf_size 1024
 #define MAX 50
-
-void errorx(char * msg)
-{
-  fprintf(stderr,"%s\n",msg);
-  exit(1);
-}
 
 
 void addUser(char *user, char *pass)
@@ -22,7 +16,7 @@ void addUser(char *user, char *pass)
   FILE *fd;
 
   if((fd = fopen(file,"at")) == NULL)
-    errorx("Erro ao abrir o ficheiro!");
+    perror("Erro: ");
 
     fprintf(fd,"%s %s\n",user,pass);
 }
@@ -46,7 +40,7 @@ int verifyUserExistence(char * user, char *pass)
   char u[MAX],p[MAX];
 
   if((fd = fopen(file,"rt")) == NULL)
-    errorx("Erro ao abrir o ficheiro!");
+    perror("Erro ao abrir ficheiro: ");
 
   while(fscanf(fd," %s %s ",u,p) == 2)
   {
@@ -69,7 +63,7 @@ int main (int argc, char *argv[])
   if(verifyUserFile() >= 0)
   {
     if(verifyUserExistence(argv[1],argv[2]) == 1)
-      errorx("O utilizador ja existe");
+      printf("O utilizador '%s' ja existe",argv[1]);
 
     addUser(argv[1],argv[2]);
     printf("Utilizador \'%s\' adicionado com sucesso!\n",argv[1]);

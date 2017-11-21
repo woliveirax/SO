@@ -8,11 +8,10 @@
 
 int verify_player( char *argv, char *jogador)
 {
-  if(strcmp(argv, jogador) == 0){
-    return 1;}
-    else{
+  if(strcmp(argv, jogador) == 0)
+    return 1;
+  else
     return 0;
-  }
 }
 
   void main(int argc, char *argv[1])
