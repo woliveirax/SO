@@ -129,7 +129,7 @@ void console()
   {
     printf("\n$: ");
 
-    fgets(buffer, buffer_size, stdin);
+    fscanf(stdin," %299[^\n]",buffer);
 
     if(handleCommand(buffer) < 0)
     {
