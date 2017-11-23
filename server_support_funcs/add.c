@@ -27,9 +27,7 @@ int verifyUserFile()
 
   if(access(file,F_OK) < 0)
   {
-      fd = open(file, O_WRONLY | O_CREAT,0664);
-      close(fd);
-      return -1;
+    
   }
   return 0;
 }

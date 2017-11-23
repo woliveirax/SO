@@ -11,6 +11,7 @@ void menu_jogador(){
 
   printf (" em construçao");
 }
+
 // funçao verifica e confirma login dos users;
 void verify_login()
 {
@@ -21,17 +22,27 @@ void verify_login()
 
     existing_users verify;
 
+
+    if(access(file,F_OK) < 0)
+    {
+      printf ("\nThere isn't a user with this name\n");
+      return;
+    }
+
     FILE *f;
 
     f = fopen (FILE_USERS, "rt");
 
     if ( f == NULL ){
-      printf ("Error open file users.data");
+      printf ("Error openning file '%s' :",FILE_USERS);
+      perror ("");
       return;
     }
+
     printf ("\n<< Login >>\n");
     printf ("\nUsername: ");
     scanf (" %s", username);
+
     printf ("\nPassword: ");
     scanf (" %s", password);
 
