@@ -6,9 +6,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
- 
 
-#define FILE_USERS "../server_support_funcs/users.data"
+#define FILE_USERS "../Data/users.data"
 #define MAX 50
 
 typedef struct EXISTING_USERS {

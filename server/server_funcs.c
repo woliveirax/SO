@@ -117,13 +117,13 @@ void invalidCommand(char * command)
   fprintf(stderr,"O comando:\' %s \' nao existe. utilize help para ajuda!",command);
 }
 
-
 void console()
 {
   char buffer[buffer_size];
 
+  //TODO trata sinais
   setbuf(stdout,NULL);
-  printf("Server Console: [Admin]\n\n");
+  printf("\n\nServer Console: [Admin]\n");
 
   while(1)
   {
