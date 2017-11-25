@@ -23,7 +23,7 @@ void verify_login()
     existing_users verify;
 
 
-    if(access(file,F_OK) < 0)
+    if(access(FILE_USERS,F_OK) < 0)
     {
       printf ("\nThere isn't a user with this name\n");
       return;
