@@ -1,95 +1,179 @@
 #include "client.h"
-// funçao que vai fazer o request ao servidor para registar o novo user
-void create_user()
+#include "../comun_info.h"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void USER_MENU()
 {
-  printf (" em construçao será criado um pacote para ser enviado ao servidor para o utilizador ser registado");
+  printf ("\nEm construçao...\n");
 }
 
-// funçao menu do jogador;
+int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
+{
+  int answer;
 
-void menu_jogador(){
+  read (*fd_CLIENT_PIPE, &answer, sizeof(int));
 
-  printf (" em construçao");
+  switch (answer)
+  {
+    case USER_LOGIN_WRONG_PASS : printf("\nWrong user password..!\n");
+
+    case USER_ALREADY_IN : printf ("\nThe player is already logged in..!\n");
+
+    case SERVER_FULL : printf ("\nServer Full. Try again later ...\n");
+
+  }
+  return answer;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int OPEN_CLIENT_PIPE_READ (int *fd_CLIENT_PIPE, char CLIENT_PIPE[MAX] )
+{
+
+  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_WRONLY);
+
+  if ( *fd_CLIENT_PIPE < 0)
+  {
+    return -1;
+
+  } else {
+
+    return 1;
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int SEND_CLIENT_SERVER ( int *fd_SERVER_PIPE, MSG_Login Client_login )
+{
+
+  if ( write(*fd_SERVER_PIPE, &Client_login, sizeof(MSG_Login)) < 0 )
+  {
+    return -1;
+  }
+    return 0;
 }
 
-// funçao verifica e confirma login dos users;
-void verify_login()
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 {
-    int flag = 0, i = 0;
+  int fd_CLIENT_PIPE;
 
-    char c, username[MAX], password[MAX];
+  MSG_Login Client_login;
 
+  Client_login.type = USER_AUTH;
 
-    existing_users verify;
+  printf ("\nUsername: ");
 
+  scanf (" %49[^\n]", Client_login.login.username);
 
-    if(access(FILE_USERS,F_OK) < 0)
-    {
-      printf ("\nThere isn't a user with this name\n");
-      return;
-    }
+  printf ("\n Password: ");
 
-    FILE *f;
+  scanf( "%49[^\n]", Client_login.login.password);                 //TODO alterar para getpass();
 
-    f = fopen (FILE_USERS, "rt");
+  Client_login.login.PID = getpid();
 
-    if ( f == NULL ){
-      printf ("Error openning file '%s' :",FILE_USERS);
-      perror ("");
-      return;
-    }
+  if ( SEND_CLIENT_SERVER (fd_SERVER_PIPE , Client_login ) < 0)
+  {
+    printf ("\nError sending for server login package ...!\n");
+    return;
+  }
+  if ( OPEN_CLIENT_PIPE_READ(&fd_CLIENT_PIPE, CLIENT_PIPE) < 0 )
+  {
+    printf ("Error opening CLIENT PIPE for reading");
+    return;
+  }
+  if ( RECEIVE_CLIENT_PIPE(&fd_CLIENT_PIPE) == USER_LOGIN_ACCEPTED )
+  {
+    USER_MENU();
+  }
 
-    printf ("\n<< Login >>\n");
-    printf ("\nUsername: ");
-    scanf (" %s", username);
-
-    printf ("\nPassword: ");
-    scanf (" %s", password);
-
-    while ( fscanf (f, " %s %s ", verify.name, verify.pass) == 2 ){
-      printf ("%s\n", verify.name);
-      printf ("%s \n", verify.pass);
-      if ( strcmp ( verify.name, username ) == 0 )
-      {
-        if ( strcmp ( verify.pass, password ) == 0 )
-        {
-          flag = 1;
-        }
-      }
-    }
-    if ( flag == 1 )
-    {
-      menu_jogador();
-    }else
-      {
-        printf ("\nThere isn't a user with this name\n");
-        return;
-      }
 }
-// funçao que inicia as opçoes para cada cliente;
-int main (int argc, char * argv[])
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CLIENT_EXIT(int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX] )
 {
-    int choice;
+  close(*fd_SERVER_PIPE);
 
-    while(choice < 1 || choice > 3)
+  unlink(CLIENT_PIPE);
+
+  exit(0);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Client_options ( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
+{
+  int choice;
+
+  do {
+    printf ("\nMenu Client\n");
+    printf ("1. Login\n");
+    printf ("2. Sair\n");
+    printf ("Choice: ");
+    scanf ("%d", &choice);
+
+    switch (choice)
     {
-      printf("\n<<  Client  >>");
-      printf("\n  1. Login.  ");
-      printf("\n  2. Register.");
-      printf("\n  3. Exit.\n");
-      printf("\nChoice: ");
-      scanf (" %d", &choice);
+      case 1: CLIENT_LOGIN(fd_SERVER_PIPE, CLIENT_PIPE);
 
-      switch (choice)
-      {
-        case 1 :
-          verify_login();
-          break;
-        case 2 :
-          create_user(); // TODO isto será para ser feito o pedido de criaçao de user ao admin no servidor;
-          break;
-        case 3 :
-          exit (0);
-      }
+      case 2: CLIENT_EXIT(fd_SERVER_PIPE, CLIENT_PIPE);
     }
+
+  }while (choice < 1 || choice > 2);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int create_CLIENT_PIPE(char * PIPE)
+{
+  if ( mkfifo (PIPE, 0664) < 0 )
+  {
+    return -1;
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int  open_SERVER_PIPE_WRITE (int *fd)
+{
+
+  *fd = open (SERVER_PIPE, O_WRONLY);
+
+  if ( *fd < 0 )
+  {
+    return -1;
+
+  } else {
+
+    return 1;
+
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Client_console()
+{
+  MSG_Login LOGIN;
+
+  char CLIENT_PIPE[MAX];
+
+  int fd_SERVER_PIPE;
+
+  sprintf (CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
+
+  printf ("\n%s\n", CLIENT_PIPE);
+
+  if ( open_SERVER_PIPE_WRITE(&fd_SERVER_PIPE) < 0 )
+  {
+    printf (" \n Error opening SERVER_PIPE for writing..! \n");
+
+    return;
+  }
+
+  if ( create_CLIENT_PIPE(CLIENT_PIPE) < 0 )
+  {
+    printf ("\n Error creating CLIENT_PIPE ! \n");
+
+    return;
+  }
+
+  Client_options(&fd_SERVER_PIPE, CLIENT_PIPE);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int main ( int argc, char * argv[])
+  {
+    Client_console();
+    return 0;
   }
