@@ -11,9 +11,9 @@ void GO_TO_USER_EXIT(int * fd_SERVER_PIPE, char *CLIENT_PIPE)
 
   msg_user_exit.type = USER_EXIT;
   msg_user_exit.user.PID = getpid();
-  msg_user_exit.user.action = USER_EXIT;
+  msg_user_exit.user.ACTION = USER_EXIT;
 
- if ( write ( *fd_SERVER_PIPE, &user_exit, sizeof(msg_user_option)) < 0)
+ if ( write ( *fd_SERVER_PIPE, &msg_user_exit, sizeof(msg_user_option)) < 0)
  {
 
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
