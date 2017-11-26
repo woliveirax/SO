@@ -42,15 +42,6 @@
 
 //#define SERVER_KILL_CLI       24
 
-<<<<<<< HEAD
-#define USER_LOGIN_ACCEPTED      0
-#define USER_LOGIN_WRONG_PASS   -2
-#define USER_ALREADY_IN         -3
-#define SERVER_FULL             -4
-
-
-//Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
-=======
 
 
 #define USER_LOGIN_ACCEPTED      0
@@ -63,30 +54,17 @@
 
 
 
-
-
 //Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
 
->>>>>>> Wallace
 typedef struct REQ_REG_USER
 
 {
-<<<<<<< HEAD
-  int PID;
-=======
 
   int PID;
 
->>>>>>> Wallace
   char username[MAX];
 
   char password[MAX];
-<<<<<<< HEAD
-
-}Login;
-// estrutura que será enviada com o request para o servidor adicionar o novo utilizador;
-typedef struct MSG_REQ_REG_USER
-=======
 
 
 
@@ -96,15 +74,9 @@ typedef struct MSG_REQ_REG_USER
 
 typedef struct MSG_REQ_REG_USER
 
->>>>>>> Wallace
 {
 
   int type;
-<<<<<<< HEAD
-  Login login;
-
-}MSG_Login;
-=======
 
   Login login;
 
@@ -113,7 +85,6 @@ typedef struct MSG_REQ_REG_USER
 }MSG_Login;
 
 
->>>>>>> Wallace
 
 //union onde irão estar todas as açoes que poderam ser feitas, bomberman, Client, user etc:...
 
@@ -122,26 +93,6 @@ typedef struct ACTION
 {
 
   int PID;
-<<<<<<< HEAD
-  int Movement;
-                  // variavel para defenir possiveis tarefas do bomberman;
-                  //    valor      assignment        Tecla
-                  // Movement = 1   NORTH           up key
-                  // Movement = 2   EAST            left key
-                  // Movement = 3   SOUTH           low key
-                  // Movement = 4   WEST            right key
-                  // Movement = 5   bomb nuke       C key
-                  // Movement = 6   Bomb granede    D key
-                  // Movement = 7   jump            SPACE key
-
-}Action;
-// Extrutura que representa o movimento do Bomberman a ser enviada para o servidor;
-typedef struct MSG_BomberMan_Movement
-{
-  int type;
-  Action action;
-}Movement;
-=======
 
   int Movement;
 
@@ -179,5 +130,4 @@ typedef struct MSG_BomberMan_Movement
 
 }Movement;
 
->>>>>>> Wallace
 #endif /* COMUN_INFO_H */
