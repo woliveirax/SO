@@ -54,8 +54,6 @@
 
 
 
-
-
 //Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
 
 typedef struct REQ_REG_USER

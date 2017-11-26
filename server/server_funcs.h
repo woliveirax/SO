@@ -44,6 +44,9 @@ typedef struct RCVED_DATA {
   int nClients;
 }ClientsData;
 
+//Pipe Functions
+int pipeMain(ClientsData * Data);
+
 //Data handling functions
 void freeSpace(char **array);
 char ** getComandAndArguments(char * string, char ** command);

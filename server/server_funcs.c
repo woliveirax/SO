@@ -53,7 +53,7 @@ int verifyPlayerCredentials(Login login)
     return -1;
   }
 
-  if(!credentialValidation(f,login)) //TODO Falta tratar -2
+  if(credentialValidation(f,login) == 0) //TODO Falta tratar -2
   {
     fclose(f);
     return 0; //Password valida
@@ -65,11 +65,34 @@ int verifyPlayerCredentials(Login login)
   }
 }
 
+int openClientFD(ClientsData * Data)
+{
+  char path[100];
+  sprintf(path,CLIENT_PIPE_TEMPLATE,Data->clients[Data->nClients].PID);
+
+  if((Data->clients[Data->nClients].FD = open(path,O_WRONLY)) == -1)
+  {
+    perror("Error opening client FD: ");
+    (Data->nClients)--;
+    return -1;
+  }
+  printf("Fica a espera");
+  return 0;
+}
 
 int addClientsToArray(ClientsData * Data, Login login)
 {
-  strcpy(Data->clients[Data->nClients].username,login.username);
-  Data->nClients++;
+  Client a;
+
+  strcpy(a.username,login.username);
+  a.PID = login.PID;
+  a.player = NULL;
+
+  Data->clients[Data->nClients] = a;
+  printf("PID: %d -- User: %s\n",Data->clients[Data->nClients].PID,Data->clients[Data->nClients].username);
+  openClientFD(Data);
+
+  (Data->nClients)++;
 
   return 0;
 }
@@ -79,7 +102,7 @@ int verifyPlayerLoginRequest(ClientsData *Data,int serverFD)
 {
   Login login;
 
-  if(Data->nClients = 20)
+  if(Data->nClients == 20)
     return -4; //SERVER FULL
 
   if((read(serverFD,&login,sizeof(Login))) < 0)
@@ -88,8 +111,8 @@ int verifyPlayerLoginRequest(ClientsData *Data,int serverFD)
     return -1;  //PIPE ERROR
   }
 
-  if(!verifyPlayerCredentials(login))
-    if(!verifyLoggedPlayers(Data,login))
+  if(verifyPlayerCredentials(login) == 0)
+    if(verifyLoggedPlayers(Data,login) == 0)
       addClientsToArray(Data,login);
     else
       return -3; //PLAYER ALREADY LOGGED IN
@@ -99,26 +122,13 @@ int verifyPlayerLoginRequest(ClientsData *Data,int serverFD)
   return 0; //USER WAS ACCEPTED AND LOGGED
 }
 
-int openClientFD(ClientsData * Data)
-{
-  char path[100];
-  sprintf(path,CLIENT_PIPE_TEMPLATE,Data->clients[Data->nClients].FD);
-
-  if((Data->clients[Data->nClients].FD = open(path,O_WRONLY)) == -1)
-  {
-    perror("Error opening client FD: ");
-    Data->nClients--;
-    return -1;
-  }
-  return 0;
-}
 
 int sendLoginResponse(ClientsData * Data,int response)
 {
-  if(openClientFD(Data))
-    return -1;
+  //if(openClientFD(Data))
+    //return -1;
 
-  if((write(Data->clients[Data->nClients].FD,&response,sizeof(int)) == -1))
+  if((write(Data->clients[(Data->nClients)-1].FD,&response,sizeof(int)) == -1))
     return -2; //TODO meter aqui define de erro -2
 
   return 0;
@@ -183,6 +193,8 @@ int pipeMain(ClientsData * Data)
 
   while(1) //TODO ver isto
     readData(Data,serverFD);
+
+  return 0;
 }
 
 
