@@ -64,11 +64,11 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   printf ("\nUsername: ");
 
-  scanf (" %49[^\n]", Client_login.login.username);
+  scanf (" %49s", Client_login.login.username);
 
   printf ("\n Password: ");
 
-  scanf( "%49[^\n]", Client_login.login.password);                 //TODO alterar para getpass();
+  scanf( "%49s", Client_login.login.password);                 //TODO alterar para getpass();
 
   Client_login.login.PID = getpid();
 
