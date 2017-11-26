@@ -48,29 +48,30 @@ void GO_TO_GAME(int * fd_SERVER_PIPE, char * CLIENT_PIPE)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void USER_MENU( int * fd_SERVER_PIPE, char * CLIENT_PIPE)
 {
-  int choice;
+  int choice = 0;
 
-  do {
-    printf ("\nUSER OPTION\n");
-    printf("1.Play.\n");
-    printf("2.Top 10.\n");
-    printf("3.View connected users.\n");
-    printf("4.Exit.\n");
-    printf("Choice: ");
-    scanf("%d", &choice);
+  while(1)
+    do {
+      printf ("\nUSER OPTION\n");
+      printf("1.Play.\n");
+      printf("2.Top 10.\n");
+      printf("3.View connected users.\n");
+      printf("4.Exit.\n");
+      printf("Choice: ");
+      scanf(" %d", &choice);
 
-    switch (choice)
-    {
-      case 1 : GO_TO_GAME(fd_SERVER_PIPE, CLIENT_PIPE);
-               break;
-      case 2 : VIEW_TOP_10(fd_SERVER_PIPE, CLIENT_PIPE);
-               break;
-      case 3 : VIEW_CON_USERS(fd_SERVER_PIPE, CLIENT_PIPE);
-               break;
-      case 4 : GO_TO_USER_EXIT(fd_SERVER_PIPE, CLIENT_PIPE);
-               break;
-    }
-  }while (choice < 1 || choice > 4);
+      switch (choice)
+      {
+        case 1 : GO_TO_GAME(fd_SERVER_PIPE, CLIENT_PIPE);
+                 break;
+        case 2 : VIEW_TOP_10(fd_SERVER_PIPE, CLIENT_PIPE);
+                 break;
+        case 3 : VIEW_CON_USERS(fd_SERVER_PIPE, CLIENT_PIPE);
+                 break;
+        case 4 : GO_TO_USER_EXIT(fd_SERVER_PIPE, CLIENT_PIPE);
+                 break;
+      }
+    }while (choice < 1 || choice > 4);
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,11 +79,12 @@ int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
 {
   int answer;
 
-  if (read (*fd_CLIENT_PIPE, &answer, sizeof(int) ) == 0 )
-    return answer;
+  read (*fd_CLIENT_PIPE, &answer, sizeof(int));
 
   switch (answer)
   {
+    case USER_LOGIN_ACCEPTED:     return USER_LOGIN_ACCEPTED;
+
     case USER_LOGIN_WRONG_PASS :  printf("\nWrong user password..!\n");
                                   break;
 
@@ -144,11 +146,13 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
     printf ("\nError sending for server login package ...!\n");
     return;
   }
+
   if ( OPEN_CLIENT_PIPE_READ(&fd_CLIENT_PIPE, CLIENT_PIPE) < 0 )
   {
     printf ("Error opening CLIENT PIPE for reading");
     return;
   }
+
   if ( RECEIVE_CLIENT_PIPE(&fd_CLIENT_PIPE) == USER_LOGIN_ACCEPTED )
   {
     printf("\nLogin successfully. Now you are logged in..!\n");
@@ -157,7 +161,7 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   } else {
 
-   return;
+    return;
 
   }
 }
@@ -167,14 +171,13 @@ void CLIENT_EXIT(int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX] )
   close(*fd_SERVER_PIPE);
 
   unlink(CLIENT_PIPE);
-
-  exit(0);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Client_options ( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 {
   int choice;
 
+while(1)
   do {
     printf ("\nMenu Client\n");
     printf ("1. Login\n");

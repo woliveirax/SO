@@ -177,9 +177,7 @@ void readData(ClientsData * Data,int serverFD)
 {
   int type = 69;
 
-  if(read(serverFD,&type,sizeof(int)) < 0)
-    perror("Erro ao ler tipo de dados rcvd: ");
-    return;
+  read(serverFD,&type,sizeof(int));
 
   switch(type)
   {
@@ -188,7 +186,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-      removeUser(Data,serverFD);
+      //removeUser(Data,serverFD);
       break;
 
     case USER_COM:
