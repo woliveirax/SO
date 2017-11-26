@@ -31,7 +31,7 @@ int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
 int OPEN_CLIENT_PIPE_READ (int *fd_CLIENT_PIPE, char CLIENT_PIPE[MAX] )
 {
 
-  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_WRONLY);
+  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_RDONLY);
 
   if ( *fd_CLIENT_PIPE < 0)
   {
@@ -64,11 +64,11 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   printf ("\nUsername: ");
 
-  scanf (" %49[^\n]", Client_login.login.username);
+  scanf (" %49[^\n] ", Client_login.login.username);
 
-  printf ("\n Password: ");
+  printf ("\nPassword: ");
 
-  scanf( "%49[^\n]", Client_login.login.password);                 //TODO alterar para getpass();
+  scanf( " %49[^\n] ", Client_login.login.password);                 //TODO alterar para getpass();
 
   Client_login.login.PID = getpid();
 
