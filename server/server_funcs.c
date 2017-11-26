@@ -158,12 +158,28 @@ int authentication(ClientsData * Data,int serverFD)
   return 0;
 }
 
+//NOTE: Remove user Function
+
+void removeUser(ClientsData * Data, int serverFD)
+{
+  Client cli;
+
+  if(read(serverFD,&cli,sizeof(Client)) < 0)
+  {
+    perror("Erro ao ler estrutura de saida de cliente: ");
+    return;
+  }
+
+  removeClient(Data,cli);
+}
 
 void readData(ClientsData * Data,int serverFD)
 {
   int type = 69;
 
-  read(serverFD,&type,sizeof(int));//TODO Verificar perror
+  if(read(serverFD,&type,sizeof(int)) < 0)
+    perror("Erro ao ler tipo de dados rcvd: ");
+    return;
 
   switch(type)
   {
@@ -172,7 +188,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-      //userExit(Data,serverFD);
+      removeUser(Data,serverFD);
       break;
 
     case USER_COM:
@@ -202,9 +218,10 @@ int pipeMain(ClientsData * Data)
     return -1;
   }
 
-  while(1) //TODO ver isto
+  while(1) //TODO ver isto NOTE: SHUTDOWN
     readData(Data,serverFD);
 
+  //shutdownPipe(serverFD);
   return 0;
 }
 
