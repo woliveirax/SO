@@ -5,5 +5,10 @@
 
 int main(int argc, char *argv[])
 {
-  console();
+  ClientsData data;
+  data.nClients = 0;
+  
+  pipeMain(&data);
+
+  //console();
 }
