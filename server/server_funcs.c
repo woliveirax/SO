@@ -32,18 +32,21 @@ int credentialValidation(FILE *f,Login login)
     if(strcmp(temp.username, login.username) == 0)
     {
       if(strcmp(temp.password,login.password) == 0)
-        return 0; //Correct password
+        return USER_LOGIN_ACCEPTED;
       else
-        return -2; //Bad password
+        return USER_LOGIN_WRONG_PASS;
     }
 
-  return -1; //Username doesn't exist
+  return USER_DOESNT_EXIST;
 }
+
+
 int verifyPlayerCredentials(Login login)
 {
+  int ret;
 
   if(access(USERS_LOGIN_DATA,F_OK) < 0)
-    return -1; //No users and no file TODO Alterar erro
+    return USER_DOESNT_EXIST;
 
   FILE *f;
 
@@ -53,98 +56,106 @@ int verifyPlayerCredentials(Login login)
     return -1;
   }
 
-  if(credentialValidation(f,login) == 0) //TODO Falta tratar -2
-  {
-    fclose(f);
-    return 0; //Password valida
-  }
-  else
-  {
-    fclose(f);
-    return -1; //Password Invalida
-  }
+  ret = credentialValidation(f,login);
+  fclose(f);
+  return ret;
 }
 
-int openClientFD(ClientsData * Data)
+
+int openClientFD(Client * cli)
 {
   char path[100];
-  sprintf(path,CLIENT_PIPE_TEMPLATE,Data->clients[Data->nClients].PID);
+  sprintf(path,CLIENT_PIPE_TEMPLATE,cli->PID);
 
-  if((Data->clients[Data->nClients].FD = open(path,O_WRONLY)) == -1)
+  if((cli->FD = open(path,O_WRONLY)) == -1)
   {
     perror("Error opening client FD: ");
-    (Data->nClients)--;
     return -1;
   }
-  printf("Fica a espera");
+
   return 0;
 }
 
-int addClientsToArray(ClientsData * Data, Login login)
+
+void addClientToArray(ClientsData * Data, Client cli)
 {
-  Client a;
 
-  strcpy(a.username,login.username);
-  a.PID = login.PID;
-  a.player = NULL;
-
-  Data->clients[Data->nClients] = a;
-  printf("PID: %d -- User: %s\n",Data->clients[Data->nClients].PID,Data->clients[Data->nClients].username);
-  openClientFD(Data);
-
+  Data->clients[Data->nClients] = cli;
   (Data->nClients)++;
-
-  return 0;
 }
 
 
-int verifyPlayerLoginRequest(ClientsData *Data,int serverFD)
+void copyLoginToClient(Client * cli, Login login)
+{
+  strcpy(cli->username,login.username);
+  cli->PID = login.PID;
+  cli->player = NULL;
+
+  openClientFD(cli);
+}
+
+int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD)
 {
   Login login;
 
   if(Data->nClients == 20)
-    return -4; //SERVER FULL
+    return SERVER_FULL;
 
   if((read(serverFD,&login,sizeof(Login))) < 0)
   {
     perror("Error reading from Server Pipe: ");
-    return -1;  //PIPE ERROR
+    return -1;
   }
+
+  copyLoginToClient(cli,login);
 
   if(verifyPlayerCredentials(login) == 0)
     if(verifyLoggedPlayers(Data,login) == 0)
-      addClientsToArray(Data,login);
+      return USER_LOGIN_ACCEPTED;
     else
-      return -3; //PLAYER ALREADY LOGGED IN
+      return USER_ALREADY_IN;
   else
-    return -2; //PASSWORD MISMATCH
-
-  return 0; //USER WAS ACCEPTED AND LOGGED
+    return USER_DOESNT_EXIST;
 }
 
-
-int sendLoginResponse(ClientsData * Data,int response)
+void removeClient(ClientsData * Data, Client cli)
 {
-  //if(openClientFD(Data))
-    //return -1;
-
-  if((write(Data->clients[(Data->nClients)-1].FD,&response,sizeof(int)) == -1))
-    return -2; //TODO meter aqui define de erro -2
-
-  return 0;
+  for(int i = 0;i < Data->nClients; i++)
+    if(strcmp(Data->clients[i].username,cli.username) == 0)
+    {
+      Data->clients[i] = Data->clients[(Data->nClients)-1];
+      (Data->nClients)--;
+    }
 }
-
 
 int authentication(ClientsData * Data,int serverFD)
 {
   int response;
+  Client cli;
 
-  response = verifyPlayerLoginRequest(Data,serverFD);
-  if(response == -1)
-    return -1;
+  response = verifyPlayerLoginRequest(Data,&cli,serverFD);
+  if(response == USER_LOGIN_ACCEPTED)
+  {
+    addClientToArray(Data,cli);
+    if(write(cli.FD,&response,sizeof(int)) < 0)
+    {
+      removeClient(Data,cli);
+      close(cli.FD);
+      return -1;
+    }
+  }
+  else
+  {
+    if(write(cli.FD,&response,sizeof(int)) < 0)
+    {
+      close(cli.FD);
+      return -1;
+    }
 
-  if(sendLoginResponse(Data,response) < 0) //TODO falta tratar melhor os erros
-    return -1;
+    close(cli.FD);
+  }
+
+  return 0;
 }
 
 
@@ -208,7 +219,7 @@ void freeSpace(char **array)
   free(array);
 }
 
-//TODO tentar melhorar se houver tempo;
+
 char ** getComandAndArguments(char * string, char ** command)
 {
   char *argument;

@@ -46,11 +46,13 @@
 
 #define USER_LOGIN_ACCEPTED      0
 
-#define USER_LOGIN_WRONG_PASS   -2
+#define USER_DOESNT_EXIST       -2
 
-#define USER_ALREADY_IN         -3
+#define USER_LOGIN_WRONG_PASS   -3
 
-#define SERVER_FULL             -4
+#define USER_ALREADY_IN         -4
+
+#define SERVER_FULL             -5
 
 
 
@@ -84,6 +86,18 @@ typedef struct MSG_REQ_REG_USER
 
 }MSG_Login;
 
+
+typedef struct USER_OPTION
+{
+  int PID;
+  int ACTION;
+}USER_action;
+
+typedef struct MSG_USER_OPTION
+{
+  int type;
+  USER_action user;
+}msg_user_option;
 
 
 //union onde irão estar todas as açoes que poderam ser feitas, bomberman, Client, user etc:...
