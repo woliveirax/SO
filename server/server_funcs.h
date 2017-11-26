@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include "../comun_info.h"
 
 #define MAX_CLI 20
@@ -45,7 +46,7 @@ typedef struct RCVED_DATA {
 }ClientsData;
 
 //Pipe Functions
-int pipeMain(ClientsData * Data);
+void pipeMain(void * rcvData);
 
 //Data handling functions
 void freeSpace(char **array);

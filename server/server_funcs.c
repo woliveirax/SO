@@ -204,8 +204,11 @@ void readData(ClientsData * Data,int serverFD)
 }
 
 
-int pipeMain(ClientsData * Data)
+void pipeMain(void * rcvData)
 {
+
+  ClientsData * Data = (ClientsData *) rcvData;
+
   int serverFD;
 
   criaServerPipe();
@@ -213,14 +216,14 @@ int pipeMain(ClientsData * Data)
   if((serverFD = open(SERVER_PIPE,O_RDONLY)) < 0)
   {
     perror("Erro ao abrir pipe do servidor: ");
-    return -1;
+    return;
   }
 
   while(1) //TODO ver isto NOTE: SHUTDOWN
     readData(Data,serverFD);
 
   //shutdownPipe(serverFD);
-  return 0;
+  return;
 }
 
 
@@ -319,7 +322,7 @@ int handleCommand(char * str)
 
       if(fork() == 0)
       {
-        if(chdir("../server_support_funcs") < 0)
+        if(chdir("../server_support_funcs/") < 0)
           perror("Erro chdir: ");
 
         execvp(command,arguments);
