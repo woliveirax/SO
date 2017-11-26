@@ -186,7 +186,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-      //removeUser(Data,serverFD);
+      removeUser(Data,serverFD);
       break;
 
     case USER_COM:

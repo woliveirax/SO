@@ -171,6 +171,7 @@ void CLIENT_EXIT(int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX] )
   close(*fd_SERVER_PIPE);
 
   unlink(CLIENT_PIPE);
+  exit(0);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Client_options ( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
