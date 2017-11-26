@@ -15,10 +15,10 @@ int criaServerPipe()
 }
 
 
-int verifyLoggedPlayers(Data * Data, Login login)
+int verifyLoggedPlayers(ClientsData * Data, Login login)
 {
   for(int i = 0; i < Data->nClients; i++)
-    if(strcmp(Data->Clients[i].Username,login.Username) == 0)
+    if(strcmp(Data->clients[i].username,login.username) == 0)
       return -1;
 
   return 0;
@@ -66,14 +66,16 @@ int verifyPlayerCredentials(Login login)
 }
 
 
-void acceptLogin(ClientsData * Data, Login login)
+int addClientsToArray(ClientsData * Data, Login login)
 {
-  addClientsToArray(Data.clients[nClients],login)
+  strcpy(Data->clients[Data->nClients].username,login.username);
+  Data->nClients++;
 
+  return 0;
 }
 
 
-int verifyPlayerLoginRequest(ClientsData *Data)
+int verifyPlayerLoginRequest(ClientsData *Data,int serverFD)
 {
   Login login;
 
@@ -87,8 +89,8 @@ int verifyPlayerLoginRequest(ClientsData *Data)
   }
 
   if(!verifyPlayerCredentials(login))
-    if(!verifyLoggedPlayers(login))
-      acceptLogin(Data, login);
+    if(!verifyLoggedPlayers(Data,login))
+      addClientsToArray(Data,login);
     else
       return -3; //PLAYER ALREADY LOGGED IN
   else
@@ -97,18 +99,42 @@ int verifyPlayerLoginRequest(ClientsData *Data)
   return 0; //USER WAS ACCEPTED AND LOGGED
 }
 
+int openClientFD(ClientsData * Data)
+{
+  char path[100];
+  sprintf(path,CLIENT_PIPE_TEMPLATE,Data->clients[Data->nClients].FD);
 
-int authentication(ClientsData * Data)
+  if((Data->clients[Data->nClients].FD = open(path,O_WRONLY)) == -1)
+  {
+    perror("Error opening client FD: ");
+    Data->nClients--;
+    return -1;
+  }
+  return 0;
+}
+
+int sendLoginResponse(ClientsData * Data,int response)
+{
+  if(openClientFD(Data))
+    return -1;
+
+  if((write(Data->clients[Data->nClients].FD,&response,sizeof(int)) == -1))
+    return -2; //TODO meter aqui define de erro -2
+
+  return 0;
+}
+
+
+int authentication(ClientsData * Data,int serverFD)
 {
   int response;
 
-  response = verifyPlayerLoginRequest(Data);
+  response = verifyPlayerLoginRequest(Data,serverFD);
   if(response == -1)
     return -1;
 
-
-
-
+  if(sendLoginResponse(Data,response) < 0) //TODO falta tratar melhor os erros
+    return -1;
 }
 
 
@@ -125,7 +151,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-      userExit(Data,serverFD);
+      //userExit(Data,serverFD);
       break;
 
     case USER_COM:
@@ -137,13 +163,13 @@ void readData(ClientsData * Data,int serverFD)
     case USER_REQUEST:
       break;
 
-    case default:
+    default:
       break;
   }
 }
 
 
-void pipeMain(ClientsData * Data)
+int pipeMain(ClientsData * Data)
 {
   int serverFD;
 
