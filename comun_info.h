@@ -32,9 +32,9 @@ typedef struct MSG_REQ_REG_USER
 
 typedef struct REQ_REG_USER
 {
+  int PID;
   char username[MAX];
   char password[MAX];
-  int PID;
 
 }Login;
 
@@ -58,7 +58,7 @@ typedef struct ACTION
   // B = 6   Bomb granede    D key
   // B = 7   jump            SPACE key
   int Movement;
-  
+
 
 }Action;
 //estrutura pacote a enviar com as enumeras açoes que podem existir
