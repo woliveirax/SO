@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
   ClientsData data;
   data.nClients = 0;
-  
+
   pipeMain(&data);
 
   //console();
