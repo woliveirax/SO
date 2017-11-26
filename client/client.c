@@ -68,7 +68,11 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   printf ("\nPassword: ");
 
+<<<<<<< Updated upstream
   scanf( " %49[^\n] ", Client_login.login.password);                 //TODO alterar para getpass();
+=======
+  scanf( " %49[^\n]", Client_login.login.password);                 //TODO alterar para getpass();
+>>>>>>> Stashed changes
 
   Client_login.login.PID = getpid();
 
