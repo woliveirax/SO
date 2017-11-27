@@ -1,7 +1,10 @@
 all: server_interface
 
 server_interface:	server_funcs.o	server_interface.o
-	gcc server_funcs.o	server_interface.o -o	server_interface
+	gcc server_funcs.o	server_interface.o -o	server_interface -lpthread
+
+debug: server_funcs.o	server_interface.o
+	gcc server_funcs.o	server_interface.o -g -o	server_interface -lpthread
 
 server_interface.o:	server_interface.c
 	gcc -c server_interface.c

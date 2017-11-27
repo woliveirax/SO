@@ -8,7 +8,9 @@ int main(int argc, char *argv[])
   ClientsData data;
   data.nClients = 0;
 
-  pipeMain(&data);
+  pthread_t thread_id;
 
-  //console();
+  pthread_create(&thread_id,NULL,pipeMain,(void *) &data);
+
+  console();
 }
