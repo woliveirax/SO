@@ -11,7 +11,6 @@ int main(int argc, char *argv[])
   pthread_t thread_id;
 
   pthread_create(&thread_id,NULL,pipeMain,(void *) &data);
-  //pipeMain(&data);
 
   console();
 }

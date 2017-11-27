@@ -204,7 +204,7 @@ void readData(ClientsData * Data,int serverFD)
 }
 
 
-void pipeMain(void * rcvData)
+void * pipeMain(void * rcvData)
 {
 
   ClientsData * Data = (ClientsData *) rcvData;
@@ -216,14 +216,13 @@ void pipeMain(void * rcvData)
   if((serverFD = open(SERVER_PIPE,O_RDONLY)) < 0)
   {
     perror("Erro ao abrir pipe do servidor: ");
-    return;
+    return NULL;
   }
 
   while(1) //TODO ver isto NOTE: SHUTDOWN
     readData(Data,serverFD);
 
   //shutdownPipe(serverFD);
-  return;
 }
 
 
@@ -345,9 +344,22 @@ void invalidCommand(char * command)
   fprintf(stderr,"O comando:\' %s \' nao existe. utilize help para ajuda!",command);
 }
 
+void trataSinal(int s)
+{
+  if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
+    return;
+}
+
+//IGNORE SIGNALS: TODO
+//sigset_t mask;
+//sigfillset(&mask);
+//sigprocmask(SIG_SETMASK, &mask, NULL);
+
 void console()
 {
   char buffer[buffer_size];
+
+  signal(SIGINT,trataSinal);
 
   //TODO trata sinais
   setbuf(stdout,NULL);
