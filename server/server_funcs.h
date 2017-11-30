@@ -50,8 +50,8 @@ void * pipeMain(void * rcvData);
 
 //Data handling functions
 void freeSpace(char **array);
-char ** getComandAndArguments(char * string, char ** command);
-int handleCommand(char * call);
+char ** getComandAndArguments(char * string, char ** command, int * argc);
+void handleCommand(char * call);
 
 //Console functions
 void invalidCommand(char * command);

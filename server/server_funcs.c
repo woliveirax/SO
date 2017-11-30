@@ -5,11 +5,18 @@
 int criaServerPipe()
 {
   if(access(SERVER_PIPE,F_OK) < 0)
+  {
     if(mkfifo(SERVER_PIPE,0664) < 0)
     {
       perror("Erro ao criar pipe no servidor: ");
       return -1;
     }
+  }
+  else
+  {
+      printf("Uma instancia do servidor já se econtra inicializada!\n");
+      exit(1);
+  }
 
   return 0;
 }
@@ -79,7 +86,6 @@ int openClientFD(Client * cli)
 
 void addClientToArray(ClientsData * Data, Client cli)
 {
-
   Data->clients[Data->nClients] = cli;
   (Data->nClients)++;
 }
@@ -118,11 +124,12 @@ int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD)
     return USER_DOESNT_EXIST;
 }
 
-void removeClient(ClientsData * Data, Client cli)
+void removeClientFromArray(ClientsData * Data, char * username)
 {
   for(int i = 0;i < Data->nClients; i++)
-    if(strcmp(Data->clients[i].username,cli.username) == 0)
+    if(strcmp(Data->clients[i].username,username) == 0)
     {
+      close(Data->clients[i].FD);
       Data->clients[i] = Data->clients[(Data->nClients)-1];
       (Data->nClients)--;
     }
@@ -139,8 +146,7 @@ int authentication(ClientsData * Data,int serverFD)
     addClientToArray(Data,cli);
     if(write(cli.FD,&response,sizeof(int)) < 0)
     {
-      removeClient(Data,cli);
-      close(cli.FD);
+      removeClientFromArray(Data,cli.username);
       return -1;
     }
   }
@@ -160,17 +166,27 @@ int authentication(ClientsData * Data,int serverFD)
 
 //NOTE: Remove user Function
 
+void removeUserByPID(ClientsData * Data, int PID)
+{
+  for(int i = 0; i < Data->nClients; i++)
+    if(Data->clients[i].PID == PID)
+    {
+      Data->clients[i] = Data->clients[(Data->nClients)-1];
+      (Data->nClients)--;
+    }
+}
+
 void removeUser(ClientsData * Data, int serverFD)
 {
-  Client cli;
+  USER_action cli;
 
-  if(read(serverFD,&cli,sizeof(Client)) < 0)
+  if(read(serverFD,&cli,sizeof(USER_action)) < 0)
   {
     perror("Erro ao ler estrutura de saida de cliente: ");
     return;
   }
 
-  removeClient(Data,cli);
+  removeUserByPID(Data,cli.PID);
 }
 
 void readData(ClientsData * Data,int serverFD)
@@ -237,35 +253,35 @@ void freeSpace(char **array)
 }
 
 
-char ** getComandAndArguments(char * string, char ** command)
+char ** getComandAndArguments(char * string, char ** command, int * argQuant)
 {
   char *argument;
   char **arguments = NULL;
   char **aux;
-  int argQuant = 0;
+  *argQuant = 0;
 
   *command = strtok(string," \n");
 
-  aux = realloc(arguments,sizeof(char *) * (argQuant + 1));
+  aux = realloc(arguments,sizeof(char *) * ((*argQuant) + 1));
   if(aux != NULL)
     arguments = aux;
   else
     return NULL;
 
-  arguments[argQuant] = malloc(50 * sizeof(char));
-  if(arguments[argQuant] == NULL)
+  arguments[*argQuant] = malloc(50 * sizeof(char));
+  if(arguments[*argQuant] == NULL)
   {
     free(arguments);
     return NULL;
   }
 
-  strcpy(arguments[argQuant],*command);
-  argQuant++;
+  strcpy(arguments[(*argQuant)],*command);
+  (*argQuant)++;
 
   //NOTE ARGUMENT AND ARGUMENTS
   for (argument = strtok(NULL, " \n");argument != NULL;)
   {
-    aux = realloc(arguments,sizeof(char *) * (argQuant + 1));
+    aux = realloc(arguments,sizeof(char *) * ((*argQuant) + 1));
     if(aux != NULL)
       arguments = aux;
     else
@@ -274,68 +290,38 @@ char ** getComandAndArguments(char * string, char ** command)
       return NULL;
     }
 
-    arguments[argQuant] = malloc(50 * sizeof(char));
-    if(arguments[argQuant] == NULL)
+    arguments[*argQuant] = malloc(50 * sizeof(char));
+    if(arguments[*argQuant] == NULL)
     {
       freeSpace(arguments);
       return NULL;
     }
-    strcpy(arguments[argQuant],argument);
+    strcpy(arguments[*argQuant],argument);
 
-    argQuant++;
+    (*argQuant)++;
     argument = strtok(NULL, " \n");
   }
 
-  aux = realloc(arguments,sizeof(char *) * (argQuant + 1)); //NOTE INSERE NULL NO ULTIMO PONTEIRO DA STRING PARA SABER O FIM.
-  aux[argQuant] = NULL;
+  aux = realloc(arguments,sizeof(char *) * ((*argQuant) + 1)); //NOTE INSERE NULL NO ULTIMO PONTEIRO DA STRING PARA SABER O FIM.
+  aux[*argQuant] = NULL;
   arguments = aux;
 
   return arguments;
 }
 
 
-char * getPath (char * command)
-{
-  char *path = malloc( sizeof(char) * (strlen(command) + 3));
-
-  strcat(path,(const char *) "./");
-  strcat(path,(const char *) command);
-
-  return path;
-}
-
-
-int handleCommand(char * str)
+void handleCommand(char * str)
 {
   char *commands[] = {"add","users","kick","game","shutdown","map","help",NULL};
   char *command;
   char **arguments;
+  int argc;
 
-  arguments = getComandAndArguments(str,&command);
+  arguments = getComandAndArguments(str,&command,&argc);
 
-  for(int i = 0; commands[i] != NULL;i++)
-  {
-    if(strcmp(command,commands[i]) == 0)
-    {
-      command = getPath(command);
 
-      if(fork() == 0)
-      {
-        if(chdir("../server_support_funcs/") < 0)
-          perror("Erro chdir: ");
 
-        execvp(command,arguments);
-      }
-      else
-        wait(NULL);
-
-      free(command);
-      freeSpace(arguments);
-      return 0;
-    }
-  }
   freeSpace(arguments);
-  return -1;
 }
 
 
@@ -347,7 +333,8 @@ void invalidCommand(char * command)
 void trataSinal(int s)
 {
   if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
-    return;
+    unlink(SERVER_PIPE);
+    exit(0);
 }
 
 //IGNORE SIGNALS: TODO
@@ -365,15 +352,15 @@ void console()
   setbuf(stdout,NULL);
   printf("\n\nServer Console: [Admin]\n");
 
-  while(1)
+  while(1) //Mudar para do while ?
   {
     printf("\n$: ");
 
     fscanf(stdin," %299[^\n]",buffer);
 
-    if(handleCommand(buffer) < 0)
-    {
-      invalidCommand(buffer);
-    }
+    handleCommand(buffer);
   }
+  //NOTE Handle command pode devolver um valor e este pode ser o valor para acabar o ciclo.
+  //NOTE: Pensar nisso.
+  //shutdown()
 }
