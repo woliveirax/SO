@@ -12,5 +12,5 @@ int main(int argc, char *argv[])
 
   pthread_create(&thread_id,NULL,pipeMain,(void *) &data);
 
-  console();
+  console(&data);
 }

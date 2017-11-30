@@ -1,5 +1,6 @@
 #include "server_funcs.h"
 #include "../comun_info.h"
+#include "../server_support_funcs/server_support_funcs.h"
 
 //NOTE Named pipes
 int criaServerPipe()
@@ -310,7 +311,7 @@ char ** getComandAndArguments(char * string, char ** command, int * argQuant)
 }
 
 
-void handleCommand(char * str)
+void handleCommand(char * str, ClientsData * Data)
 {
   char *commands[] = {"add","users","kick","game","shutdown","map","help",NULL};
   char *command;
@@ -319,7 +320,30 @@ void handleCommand(char * str)
 
   arguments = getComandAndArguments(str,&command,&argc);
 
-
+  if(strcmp(command,"add") == 0)
+  {
+    addUser(argc,arguments);
+  }
+  else if(strcmp(command,"kick") == 0)
+  {
+    kickUser(argc,arguments,Data);
+  }
+  else if(strcmp(command,"users") == 0)
+  {
+    showCurrentUsers(argc,Data);
+  }
+  else if(strcmp(command,"shutdown") == 0)
+  {
+    serverShutdown(argc,Data);
+  }
+  else if(strcmp(command,"map") == 0)
+  {
+    printf("Mapa!!!");
+  }
+  else
+  {
+    invalidCommand(command);
+  }
 
   freeSpace(arguments);
 }
@@ -342,7 +366,7 @@ void trataSinal(int s)
 //sigfillset(&mask);
 //sigprocmask(SIG_SETMASK, &mask, NULL);
 
-void console()
+void console(ClientsData * Data)
 {
   char buffer[buffer_size];
 
@@ -358,8 +382,9 @@ void console()
 
     fscanf(stdin," %299[^\n]",buffer);
 
-    handleCommand(buffer);
+    handleCommand(buffer,Data);
   }
+
   //NOTE Handle command pode devolver um valor e este pode ser o valor para acabar o ciclo.
   //NOTE: Pensar nisso.
   //shutdown()

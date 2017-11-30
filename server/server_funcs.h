@@ -51,10 +51,10 @@ void * pipeMain(void * rcvData);
 //Data handling functions
 void freeSpace(char **array);
 char ** getComandAndArguments(char * string, char ** command, int * argc);
-void handleCommand(char * call);
+void handleCommand(char * str, ClientsData * Data);
 
 //Console functions
 void invalidCommand(char * command);
-void console();
+void console(ClientsData * Data);
 
 #endif /* SERVER_H */
