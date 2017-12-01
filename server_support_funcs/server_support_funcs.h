@@ -9,30 +9,13 @@
 #include <fcntl.h>
 #include <string.h>
 #include "../comun_info.h"
-
-#define file "../Data/users.data"
-#define buf_size 1024
-#define MAX 50
-
-
-typedef struct client {
-  int PID;
-  int FD;
-  char username[MAX];
-  Player *player;
-
-} Client;
-
-typedef struct RCVED_DATA {
-  Client clients[MAX_CLI];
-  int nClients;
-}ClientsData;
-
+#include "../server_support_funcs/server_support_funcs.h"
+#include "../server/server_structures.h"
 
 int help(int argc, char *argv[]);
 int addUser (int argc, char *argv[]);
-void showCurrentUsers(int argc,ClientsData Data);
-void serverShutdown(int argc, ClientsData * Data);
+void showCurrentUsers(int argc, char * argv[], ClientsData Data);
+void serverShutdown(int argc, char * argv[], ClientsData * Data);
 int kickUser(int argc, char * argv[],ClientsData * Data);
 
 

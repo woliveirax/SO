@@ -13,37 +13,10 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include "../comun_info.h"
+#include "server_structures.h"
 
-#define MAX_CLI 20
 #define MAX 50
 #define buffer_size 300
-
-typedef struct Bomb {
-  int nBombs;
-  int posx,posy;
-  int explosionSize; //Tamanho explosao
-}Bomb;
-
-typedef struct player {
-  int PID;
-  int posx,posy;
-  int score;
-  Bomb nuke;
-  Bomb grenade;
-} Player;
-
-typedef struct client {
-  int PID;
-  int FD;
-  char username[MAX];
-  Player *player;
-
-} Client;
-
-typedef struct RCVED_DATA {
-  Client clients[MAX_CLI];
-  int nClients;
-}ClientsData;
 
 //Pipe Functions
 void * pipeMain(void * rcvData);

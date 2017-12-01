@@ -19,25 +19,26 @@
 #define USERS_LOGIN_DATA "../Data/users.data"
 
 
-
+//tipo de mensagem.
 #define USER_COM      0 //Client connection
 #define USER_AUTH     1 //User authentication
 #define USER_REQUEST  2 //User Request Cred
 #define USER_ACTION   3 //Movement
 #define USER_EXIT     4 //Client Exit
 
-
-#define SERVER_KICK           20
-#define SERVER_AUTH           21
-#define SERVER_REQ_RESP       22
-#define SERVER_SEND_GAME_INFO 23
-
-
+//Resposta DA MENSAGEM USER_AUTH
 #define USER_LOGIN_ACCEPTED      0
 #define USER_DOESNT_EXIST       -2
 #define USER_LOGIN_WRONG_PASS   -3
 #define USER_ALREADY_IN         -4
 #define SERVER_FULL             -5
+
+//Mensagens de controlo do servidor
+#define SERVER_KICK           20
+#define SERVER_AUTH           21
+#define SERVER_REQ_RESP       22
+#define SERVER_GAME_INFO      23
+#define SERVER_SHUTDOWN       24
 
 
 //Estrutura usada para ser enviada pelo cliente para ser verificado o seu login

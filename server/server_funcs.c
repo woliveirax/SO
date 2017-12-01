@@ -313,7 +313,6 @@ char ** getComandAndArguments(char * string, char ** command, int * argQuant)
 
 void handleCommand(char * str, ClientsData * Data)
 {
-  char *commands[] = {"add","users","kick","game","shutdown","map","help",NULL};
   char *command;
   char **arguments;
   int argc;
@@ -330,11 +329,11 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if(strcmp(command,"users") == 0)
   {
-    showCurrentUsers(argc,*Data);
+    showCurrentUsers(argc,arguments,*Data);
   }
   else if(strcmp(command,"shutdown") == 0)
   {
-    serverShutdown(argc,Data);
+    serverShutdown(argc,arguments,Data);
   }
   else if(strcmp(command,"map") == 0)
   {

@@ -5,19 +5,27 @@ void addUserToFile(char *user, char *pass)
 {
   FILE *fd;
 
-  if((fd = fopen(file,"at")) == NULL)
+  if((fd = fopen(users_file,"at")) == NULL)
+  {
     perror("Erro: ");
 
+  }
+  else
+  {
     fprintf(fd,"%s %s\n",user,pass);
+    fclose(fd);
+  }
 }
 
 int verifyUserFile()
 {
   int fd;
 
-  if(access(file,F_OK) < 0)
+  if(access(users_file,F_OK) < 0)
   {
-
+      fd = open(users_file, O_WRONLY | O_CREAT,0664);
+      close(fd);
+      return -1;
   }
   return 0;
 }
@@ -27,15 +35,22 @@ int verifyUserExistence(char * user, char *pass)
   FILE * fd;
   char u[MAX],p[MAX];
 
-  if((fd = fopen(file,"rt")) == NULL)
+  if((fd = fopen(users_file,"rt")) == NULL)
+  {
     perror("Erro ao abrir ficheiro: ");
+    return -1;
+  }
 
   while(fscanf(fd," %s %s ",u,p) == 2)
   {
     if(strcmp(user,u) == 0)
+    {
+      fclose(fd);
       return 1;
+    }
   }
   fclose(fd);
+  return 0;
 }
 
 
@@ -44,14 +59,17 @@ int addUser (int argc, char *argv[])
 
   if(argc != 3)
   {
-    printf("Modo de uso: %s username password",argv[0]);
+    printf("Modo de uso: %s username password\n",argv[0]);
     exit(1);
   }
 
   if(verifyUserFile() == 0)
   {
     if(verifyUserExistence(argv[1],argv[2]) == 1)
+    {
       printf("O utilizador '%s' ja existe",argv[1]);
+      return -1;
+    }
 
     addUserToFile(argv[1],argv[2]);
     printf("Utilizador \'%s\' adicionado com sucesso!\n",argv[1]);
@@ -61,7 +79,6 @@ int addUser (int argc, char *argv[])
     addUserToFile(argv[1],argv[2]);
     printf("Utilizador \'%s\' adicionado com sucesso!\n",argv[1]);
   }
-
   return 0;
 }
 
@@ -101,7 +118,25 @@ void removeClientFromServer(ClientsData * Data, char * username) //TODO ambiquid
       close(Data->clients[i].FD);
       Data->clients[i] = Data->clients[(Data->nClients)-1];
       (Data->nClients)--;
+      printf("O cliente \'%s\' foi removido do servidor!",username);
     }
+}
+
+int checkIfUserOn(ClientsData * Data, char * user)
+{
+  if(Data->nClients == 0)
+  {
+    printf("Não existem utilizadores ligados ao servidor...");
+    return -1;
+  }
+
+  for(int i = 0; i < Data->nClients ; i++)
+  {
+    if(strcmp(Data->clients[i].username, user) == 0)
+      return i;
+  }
+  printf("O cliente \'%s\' não se encontra ligado.",user);
+  return -1;
 }
 
 int sendKickToClient(Client cli)
@@ -118,25 +153,22 @@ int sendKickToClient(Client cli)
 
 int kickUser(int argc, char * argv[],ClientsData * Data)
 {
+  int pos;
+
   if(argc != 2)
   {
     fprintf(stderr,"\nmodo de uso: %s [username]\n",argv[0]);
     return -1;
   }
 
-  if(verifyLoggedPlayers(Data,argv[0]) == 0)
+  if((pos = checkIfUserOn(Data,argv[1])) >= 0)
   {
-    for(int i = 0; i < Data->nClients; i++)
-      if(strcmp(Data->clients[i].username,argv[0]) == 0)
-      {
-        sendKickToClient(Data->clients[i]);
-        removeClientFromServer(Data,argv[0]);
-        return 0;
-      }
+    sendKickToClient(Data->clients[pos]);
+    removeClientFromServer(Data,argv[1]); //TODO alterar isto para mandar POS.
+    return 0;
   }
   else
   {
-    printf("O utilizador '%s', nao se encontra no servido.",argv[0]);
     return -1;
   }
 }
@@ -144,13 +176,20 @@ int kickUser(int argc, char * argv[],ClientsData * Data)
 //####################################################################################
 // NOTE show users function
 
-void showCurrentUsers(int argc,ClientsData Data)
+void showCurrentUsers(int argc, char * argv[], ClientsData Data)
 {
   if(argc != 1)
   {
     fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
-    return -1;
+    return;
   }
+
+  if(Data.nClients == 0)
+  {
+    printf("Não existem utilizadores ligados ao servidor...");
+    return;
+  }
+
   printf("\n\n");
   printf("Clientes ligados: \n");
 
@@ -161,12 +200,12 @@ void showCurrentUsers(int argc,ClientsData Data)
 //####################################################################################
 // NOTE show users function
 
-void serverShutdown(int argc, ClientsData * Data)
+void serverShutdown(int argc,char *argv[], ClientsData * Data)
 {
   if(argc != 1)
   {
     fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
-    return -1;
+    return;
   }
 
   unlink(SERVER_PIPE);//TODO TROCAR ISTO

@@ -75,9 +75,15 @@ void USER_MENU( int * fd_SERVER_PIPE, char * CLIENT_PIPE)
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void get_client_pipe_name(char * str)
+{
+  sprintf(str,CLIENT_PIPE_TEMPLATE,getpid());
+}
+
 int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
 {
   int answer;
+  char pipe_name[50];
 
   read (*fd_CLIENT_PIPE, &answer, sizeof(int));
 
@@ -85,19 +91,24 @@ int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
   {
     case USER_LOGIN_ACCEPTED:     return USER_LOGIN_ACCEPTED;
 
-    case USER_LOGIN_WRONG_PASS :  printf("\nWrong user password..!\n");
+    case USER_LOGIN_WRONG_PASS:   printf("\nWrong user password..!\n");
                                   break;
 
-    case USER_ALREADY_IN :        printf("\nThe player is already logged in..!\n");
+    case USER_ALREADY_IN:         printf("\nThe player is already logged in..!\n");
                                   break;
 
-    case SERVER_FULL :            printf ("\nServer Full. Try again later ...\n");
+    case SERVER_FULL:             printf ("\nServer Full. Try again later ...\n");
                                   break;
 
     case SERVER_KICK:             printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
-                                  unlink(*fd_CLIENT_PIPE);
+                                  get_client_pipe_name(pipe_name);
+                                  unlink(pipe_name);
                                   exit(0);
 
+    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");
+                                  get_client_pipe_name(pipe_name);
+                                  unlink(pipe_name);
+                                  exit(0);
 
   }
   return -1;
