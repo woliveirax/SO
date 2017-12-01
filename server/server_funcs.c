@@ -330,7 +330,7 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if(strcmp(command,"users") == 0)
   {
-    showCurrentUsers(argc,Data);
+    showCurrentUsers(argc,*Data);
   }
   else if(strcmp(command,"shutdown") == 0)
   {

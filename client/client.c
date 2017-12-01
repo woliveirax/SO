@@ -93,6 +93,12 @@ int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
 
     case SERVER_FULL :            printf ("\nServer Full. Try again later ...\n");
                                   break;
+
+    case SERVER_KICK:             printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
+                                  unlink(*fd_CLIENT_PIPE);
+                                  exit(0);
+
+
   }
   return -1;
 }
@@ -100,7 +106,7 @@ int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
 int OPEN_CLIENT_PIPE_READ (int *fd_CLIENT_PIPE, char CLIENT_PIPE[MAX] )
 {
 
-  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_RDONLY);
+  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_RDWR);
 
   if ( *fd_CLIENT_PIPE < 0)
   {
@@ -161,7 +167,7 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   } else {
 
-    return;
+    return;   //TODO METER AQUI UM CICLO INFINITO PARA QUE ISTO POSSA VOLTAR AO MENU
 
   }
 }

@@ -1,15 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
-
+#include "server_support_funcs.h"
 //NOTE ADD USER FUNCS
-#define file "../Data/users.data"
-#define buf_size 1024
-#define MAX 50
 
 void addUserToFile(char *user, char *pass)
 {
@@ -101,4 +91,87 @@ int help(int argc, char *argv[])
 }
 
 //####################################################################################
-// NOTE SHOW USER FUNC
+// NOTE kick user function
+
+void removeClientFromServer(ClientsData * Data, char * username) //TODO ambiquidade
+{
+  for(int i = 0;i < Data->nClients; i++)
+    if(strcmp(Data->clients[i].username,username) == 0)
+    {
+      close(Data->clients[i].FD);
+      Data->clients[i] = Data->clients[(Data->nClients)-1];
+      (Data->nClients)--;
+    }
+}
+
+int sendKickToClient(Client cli)
+{
+  int msg = SERVER_KICK;
+
+  if(write(cli.FD,&msg,sizeof(int)) <= 0)
+  {
+    perror("Nao foi possivel enviar a mensagem de kick ao utilizador: ");
+    return -1;
+  }
+  return 0;
+}
+
+int kickUser(int argc, char * argv[],ClientsData * Data)
+{
+  if(argc != 2)
+  {
+    fprintf(stderr,"\nmodo de uso: %s [username]\n",argv[0]);
+    return -1;
+  }
+
+  if(verifyLoggedPlayers(Data,argv[0]) == 0)
+  {
+    for(int i = 0; i < Data->nClients; i++)
+      if(strcmp(Data->clients[i].username,argv[0]) == 0)
+      {
+        sendKickToClient(Data->clients[i]);
+        removeClientFromServer(Data,argv[0]);
+        return 0;
+      }
+  }
+  else
+  {
+    printf("O utilizador '%s', nao se encontra no servido.",argv[0]);
+    return -1;
+  }
+}
+
+//####################################################################################
+// NOTE show users function
+
+void showCurrentUsers(int argc,ClientsData Data)
+{
+  if(argc != 1)
+  {
+    fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
+    return -1;
+  }
+  printf("\n\n");
+  printf("Clientes ligados: \n");
+
+  for(int i = 0;i < Data.nClients;i++)
+    printf(" %d -- %s\n",i+1,Data.clients[i].username);
+}
+
+//####################################################################################
+// NOTE show users function
+
+void serverShutdown(int argc, ClientsData * Data)
+{
+  if(argc != 1)
+  {
+    fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
+    return -1;
+  }
+
+  unlink(SERVER_PIPE);//TODO TROCAR ISTO
+  exit(0);
+  //TODO fechar pipes cliente;
+  //TODO unlink do pipe servidor
+  //TODO acabar threads Servidor
+}
