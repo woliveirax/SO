@@ -1,9 +1,15 @@
 #include "client.h"
 #include "../comun_info.h"
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void cls()
+{
+printf ("\033c");
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GO_TO_USER_EXIT(Client_data *info)
 {
@@ -52,6 +58,7 @@ void USER_MENU( Client_data *info)
 
   while(1)
     do {
+      cls();
       printf ("\nUSER OPTION\n");
       printf("1.Play.\n");
       printf("2.Top 10.\n");
@@ -76,13 +83,10 @@ void USER_MENU( Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RECEIVE_CLIENT_PIPE(Client_data *info)
+void check_options_login(Client_data *info)
 {
-  int answer = 100;
 
-   while ( read(info->FD_CLIENT_PIPE, &answer, sizeof(int)) == 100);
-   printf ("\n\n%d\n\n", answer);
-  switch (answer)
+  switch (info->LOGIN_CONFIRMATION)
   {
     case USER_LOGIN_ACCEPTED:     printf("\nLogin successfully. Now you are logged in..!\n");
                                   USER_MENU(info);
@@ -105,7 +109,7 @@ void RECEIVE_CLIENT_PIPE(Client_data *info)
                                   unlink(info->CLIENT_PIPE);                         // TODO repensar no kick em vez de exit(0) apenas voltar ao menu login;
                                   return;
 
-    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisa
+    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisal
                                   unlink(info->CLIENT_PIPE);
                                   exit(0);
 
@@ -142,6 +146,12 @@ int SEND_CLIENT_SERVER ( Client_data *info, MSG_Login Client_login )
 void CLIENT_LOGIN( Client_data *info)
 {
 
+  pthread_cond_init(&info->AWAITED_REPLY_LOGIN, NULL);
+
+  pthread_mutex_init(&info->LOCK_LOGIN, NULL);
+
+  do {
+
   MSG_Login Client_login;
 
   Client_login.type = USER_AUTH;
@@ -150,9 +160,9 @@ void CLIENT_LOGIN( Client_data *info)
 
   scanf (" %49s", Client_login.login.username);
 
-  printf ("\nPassword: ");
+  printf ("\nPassword:");
 
-  scanf( "%49s", Client_login.login.password);                 //TODO alterar para getpass();
+  scanf(" %49s", Client_login.login.password);                //TODO alterar para getpass();
 
   Client_login.login.PID = getpid();
 
@@ -161,16 +171,15 @@ void CLIENT_LOGIN( Client_data *info)
     printf ("\nError sending for server login package ...!\n");
     return;
   }
+  pthread_cond_wait(&info->AWAITED_REPLY_LOGIN, &info->LOCK_LOGIN);
 
-  if ( OPEN_CLIENT_PIPE_READ(info) < 0 )
-  {
-    printf ("Error opening CLIENT PIPE for reading");
+  printf ("\n\n%d\n\n", info->LOGIN_CONFIRMATION);
+
+  check_options_login(info);
+
+}while( info->LOGIN_CONFIRMATION != 0);
+
     return;
-  }
-
-  RECEIVE_CLIENT_PIPE(info);
-
-    return;   //TODO METER AQUI UM CICLO INFINITO PARA QUE ISTO POSSA VOLTAR AO MENU
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +196,8 @@ void Client_options (Client_data *info)
 
 while(1)
   do {
-    printf ("\nMenu Client\n");
+    cls();
+    printf ("\n\n\nMenu Client\n");
     printf ("1. Login\n");
     printf ("2. Sair\n");
     printf ("Choice: ");
@@ -230,14 +240,59 @@ int  open_SERVER_PIPE_WRITE (Client_data *info)
 
   }
 }
+void change_pipe_path(Client_data *info)
+{
+  sprintf (info->CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void * receive_from_server( void * info)
+{
+  Client_data * info_client = ( Client_data * ) info;
+
+  if ( OPEN_CLIENT_PIPE_READ(info_client) < 0 )
+  {
+    printf ("Error opening CLIENT PIPE for reading");
+    return NULL;
+  }
+while (1){
+
+  read( info_client->FD_CLIENT_PIPE, &info_client->LOGIN_CONFIRMATION, sizeof(int) );
+
+  if ( info_client->LOGIN_CONFIRMATION < 1){
+
+      pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
+
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void verify_server()
+{
+  if(access(SERVER_PIPE,F_OK) < 0){
+
+    printf (" \n\nServer Is Down, try later..!\n\n");
+
+    exit(0);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Client_console()
 {
   MSG_Login LOGIN;
 
   Client_data info_client;
 
-  sprintf (info_client.CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
+  info_client.LOGIN_CONFIRMATION = 1;
+
+  change_pipe_path(&info_client);
 
   if ( open_SERVER_PIPE_WRITE(&info_client) < 0 )
   {
@@ -253,11 +308,19 @@ void Client_console()
     return;
   }
 
+  pthread_create(&info_client.RECEIVE_THREAD, NULL, receive_from_server, (void *) &info_client);
+
   Client_options(&info_client);
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char * argv[])
   {
+    setbuf(stdout, NULL);
+
+    verify_server();
+
     Client_console();
+
     return 0;
   }

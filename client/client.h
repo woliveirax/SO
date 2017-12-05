@@ -17,7 +17,9 @@
 typedef struct Client_Data
 {
   pthread_t RECEIVE_THREAD;
+  pthread_cond_t AWAITED_REPLY_LOGIN;
   pthread_mutex_t LOCK_LOGIN;
+  int LOGIN_CONFIRMATION;
   int FD_SERVER_PIPE;
   int FD_CLIENT_PIPE;
   char CLIENT_PIPE[MAX];
