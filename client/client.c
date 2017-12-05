@@ -76,15 +76,20 @@ void USER_MENU( Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int RECEIVE_CLIENT_PIPE(Client_data *info)
+void RECEIVE_CLIENT_PIPE(Client_data *info)
 {
-  int answer;
+  int answer = 100;
 
-  read (info->FD_CLIENT_PIPE, &answer, sizeof(int));
-
+   while ( read(info->FD_CLIENT_PIPE, &answer, sizeof(int)) == 100);
+   printf ("\n\n%d\n\n", answer);
   switch (answer)
   {
-    case USER_LOGIN_ACCEPTED:     return USER_LOGIN_ACCEPTED;
+    case USER_LOGIN_ACCEPTED:     printf("\nLogin successfully. Now you are logged in..!\n");
+                                  USER_MENU(info);
+                                  break;
+
+    case USER_DOESNT_EXIST:       printf("\n\nthis user does not exist, please try another account\n\n"); // TODO fazer a mensagem request create user para admin;
+                                  break;
 
     case USER_LOGIN_WRONG_PASS:   printf("\nWrong user password..!\n");
                                   break;
@@ -97,15 +102,15 @@ int RECEIVE_CLIENT_PIPE(Client_data *info)
 
     case SERVER_KICK:             printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
 
-                                  unlink(info->CLIENT_PIPE);
-                                  exit(0);
+                                  unlink(info->CLIENT_PIPE);                         // TODO repensar no kick em vez de exit(0) apenas voltar ao menu login;
+                                  return;
 
-    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");
+    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisa
                                   unlink(info->CLIENT_PIPE);
                                   exit(0);
 
   }
-  return -1;
+  return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int OPEN_CLIENT_PIPE_READ (Client_data *info)
@@ -163,17 +168,10 @@ void CLIENT_LOGIN( Client_data *info)
     return;
   }
 
-  if ( RECEIVE_CLIENT_PIPE(info) == USER_LOGIN_ACCEPTED )
-  {
-    printf("\nLogin successfully. Now you are logged in..!\n");
-
-    USER_MENU(info);
-
-  } else {
+  RECEIVE_CLIENT_PIPE(info);
 
     return;   //TODO METER AQUI UM CICLO INFINITO PARA QUE ISTO POSSA VOLTAR AO MENU
 
-  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CLIENT_EXIT(Client_data *info)
