@@ -1,11 +1,19 @@
 #include "client.h"
 #include "../comun_info.h"
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//funçao que limpa o ecran;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void cls()
+{
+printf ("\033c");
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void GO_TO_USER_EXIT(int * fd_SERVER_PIPE, char *CLIENT_PIPE)
+//funçao que faz com que o utilizador faça logout
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GO_TO_USER_EXIT(Client_data *info)
 {
   msg_user_option msg_user_exit;
 
@@ -13,45 +21,45 @@ void GO_TO_USER_EXIT(int * fd_SERVER_PIPE, char *CLIENT_PIPE)
   msg_user_exit.user.PID = getpid();
   msg_user_exit.user.ACTION = USER_EXIT;
 
- if ( write ( *fd_SERVER_PIPE, &msg_user_exit, sizeof(msg_user_option)) < 0)
+ if ( write (info->FD_SERVER_PIPE, &msg_user_exit, sizeof(msg_user_option)) < 0)
  {
 
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
 
    return;
  }
- close (*fd_SERVER_PIPE);
- unlink(CLIENT_PIPE);
- exit (0);
+ Client_options(info);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO perguntar ao prof duraes a ideia do send private message;
-void VIEW_CON_USERS(int * fd_SERVER_PIPE, char * CLIENT_PIPE)
+void VIEW_CON_USERS(Client_data *info)
 {
   printf ("Available in a few days");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void VIEW_TOP_10(int * fd_SERVER_PIPE, char * CLIENT_PIPE)
+void VIEW_TOP_10(Client_data *info)
 {
   printf ("Available in a few days");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void GO_TO_GAME(int * fd_SERVER_PIPE, char * CLIENT_PIPE)
+void GO_TO_GAME(Client_data *info)
 {
   printf ("Available in a few days");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// menu do utilizador com as respetivas opçoes  de cada utilizador
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void USER_MENU( int * fd_SERVER_PIPE, char * CLIENT_PIPE)
+void USER_MENU( Client_data *info)
 {
   int choice = 0;
 
   while(1)
     do {
+
       printf ("\nUSER OPTION\n");
       printf("1.Play.\n");
       printf("2.Top 10.\n");
@@ -62,64 +70,67 @@ void USER_MENU( int * fd_SERVER_PIPE, char * CLIENT_PIPE)
 
       switch (choice)
       {
-        case 1 : GO_TO_GAME(fd_SERVER_PIPE, CLIENT_PIPE);
+        case 1 : GO_TO_GAME(info);
                  break;
-        case 2 : VIEW_TOP_10(fd_SERVER_PIPE, CLIENT_PIPE);
+        case 2 : VIEW_TOP_10(info);
                  break;
-        case 3 : VIEW_CON_USERS(fd_SERVER_PIPE, CLIENT_PIPE);
+        case 3 : VIEW_CON_USERS(info);
                  break;
-        case 4 : GO_TO_USER_EXIT(fd_SERVER_PIPE, CLIENT_PIPE);
+        case 4 : GO_TO_USER_EXIT(info);
                  break;
       }
     }while (choice < 1 || choice > 4);
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void get_client_pipe_name(char * str)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//opçoes da resposta obtida apos tentar fazer login
+void check_options_login(Client_data *info)
 {
-  sprintf(str,CLIENT_PIPE_TEMPLATE,getpid());
-}
-
-int RECEIVE_CLIENT_PIPE(int *fd_CLIENT_PIPE)
-{
-  int answer;
-  char pipe_name[50];
-
-  read (*fd_CLIENT_PIPE, &answer, sizeof(int));
-
-  switch (answer)
+  switch (info->LOGIN_CONFIRMATION)
   {
-    case USER_LOGIN_ACCEPTED:     return USER_LOGIN_ACCEPTED;
+    case USER_LOGIN_ACCEPTED:
+      printf("\nLogin successfully. Now you are logged in..!\n");
+      USER_MENU(info);
+      break;
 
-    case USER_LOGIN_WRONG_PASS:   printf("\nWrong user password..!\n");
-                                  break;
+    case USER_LOGIN_WRONG_PASS:
+      printf("\nWrong User password..! Try Again.\n");
+      break;
 
-    case USER_ALREADY_IN:         printf("\nThe player is already logged in..!\n");
-                                  break;
+    case USER_DOESNT_EXIST:
+      printf("\n\nThis user does not exist, please try with another account\n\n");      // TODO fazer a mensagem request create user para admin;
+      break;
 
-    case SERVER_FULL:             printf ("\nServer Full. Try again later ...\n");
-                                  break;
+    case USER_ALREADY_IN:
+      printf("\nThe player is already logged in..!\n");
+      break;
 
-    case SERVER_KICK:             printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
-                                  get_client_pipe_name(pipe_name);
-                                  unlink(pipe_name);
-                                  exit(0);
+    case SERVER_FULL:
+      printf ("\nServer Full. Try again later ...\n");
+      break;
 
-    case SERVER_SHUTDOWN:         printf("\nServer going off...\n");
-                                  get_client_pipe_name(pipe_name);
-                                  unlink(pipe_name);
-                                  exit(0);
+    case SERVER_KICK:
+      printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
+      unlink(info->CLIENT_PIPE);                         // TODO repensar no kick em vez de exit(0) apenas voltar ao menu login;
+      return;
 
+    case SERVER_SHUTDOWN:
+      printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisal
+      unlink(info->CLIENT_PIPE);
+      exit(0);
   }
-  return -1;
+  return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int OPEN_CLIENT_PIPE_READ (int *fd_CLIENT_PIPE, char CLIENT_PIPE[MAX] )
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//abrir CLIENT PIPE PARA LEITURA
+int OPEN_CLIENT_PIPE_READ (Client_data *info)
 {
 
-  *fd_CLIENT_PIPE = open ( CLIENT_PIPE, O_RDWR);
+  info->FD_CLIENT_PIPE = open ( info->CLIENT_PIPE, O_RDWR);
 
-  if ( *fd_CLIENT_PIPE < 0)
+  if ( info->FD_CLIENT_PIPE < 0)
   {
     return -1;
 
@@ -129,10 +140,12 @@ int OPEN_CLIENT_PIPE_READ (int *fd_CLIENT_PIPE, char CLIENT_PIPE[MAX] )
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int SEND_CLIENT_SERVER ( int *fd_SERVER_PIPE, MSG_Login Client_login )
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//ENVIAR MENSAGEM LOGIN PARA SERVIDOR
+int SEND_CLIENT_SERVER ( Client_data *info, MSG_Login Client_login )
 {
 
-  if ( write(*fd_SERVER_PIPE, &Client_login, sizeof(MSG_Login)) < 0 )
+  if ( write(info->FD_SERVER_PIPE, &Client_login, sizeof(MSG_Login)) < 0 )
   {
     return -1;
   }
@@ -140,9 +153,16 @@ int SEND_CLIENT_SERVER ( int *fd_SERVER_PIPE, MSG_Login Client_login )
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//FUNÇAO QUE PEDE DADOS PARA FAZER LOGIN
+void CLIENT_LOGIN( Client_data *info)
 {
-  int fd_CLIENT_PIPE;
+
+  pthread_cond_init(&info->AWAITED_REPLY_LOGIN, NULL);
+
+  pthread_mutex_init(&info->LOCK_LOGIN, NULL);
+
+  do {
 
   MSG_Login Client_login;
 
@@ -152,52 +172,49 @@ void CLIENT_LOGIN( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
 
   scanf (" %49s", Client_login.login.username);
 
-  printf ("\nPassword: ");
+  if (Client_login.login.username == "\n")
+    return;
 
-  scanf( "%49s", Client_login.login.password);                 //TODO alterar para getpass();
+  printf ("\nPassword:");
+
+  scanf(" %49s", Client_login.login.password);                //TODO alterar para getpass();
 
   Client_login.login.PID = getpid();
 
-  if ( SEND_CLIENT_SERVER (fd_SERVER_PIPE , Client_login ) < 0)
+  if ( SEND_CLIENT_SERVER (info , Client_login ) < 0)
   {
     printf ("\nError sending for server login package ...!\n");
     return;
   }
+  pthread_cond_wait(&info->AWAITED_REPLY_LOGIN, &info->LOCK_LOGIN);
 
-  if ( OPEN_CLIENT_PIPE_READ(&fd_CLIENT_PIPE, CLIENT_PIPE) < 0 )
-  {
-    printf ("Error opening CLIENT PIPE for reading");
+  check_options_login(info);
+
+}while( info->LOGIN_CONFIRMATION != 0);
+
     return;
-  }
 
-  if ( RECEIVE_CLIENT_PIPE(&fd_CLIENT_PIPE) == USER_LOGIN_ACCEPTED )
-  {
-    printf("\nLogin successfully. Now you are logged in..!\n");
-
-    USER_MENU(fd_SERVER_PIPE, CLIENT_PIPE);
-
-  } else {
-
-    return;   //TODO METER AQUI UM CICLO INFINITO PARA QUE ISTO POSSA VOLTAR AO MENU
-
-  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void CLIENT_EXIT(int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX] )
+//FUNÇAO SAIR DO CLIENTE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CLIENT_EXIT(Client_data *info)
 {
-  close(*fd_SERVER_PIPE);
-
-  unlink(CLIENT_PIPE);
+  close(info->FD_SERVER_PIPE);
+  unlink(info->CLIENT_PIPE);
   exit(0);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Client_options ( int *fd_SERVER_PIPE, char CLIENT_PIPE[MAX])
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//FUNÇAO DE OPÇOES DE CLIENTE
+void Client_options(Client_data *info)
 {
   int choice;
-
+                                                                                  // TODO fazer os menus, ver na nas curiosidades;
 while(1)
   do {
-    printf ("\nMenu Client\n");
+    cls();
+    printf ("\n\n\nMenu Client\n");
     printf ("1. Login\n");
     printf ("2. Sair\n");
     printf ("Choice: ");
@@ -205,30 +222,35 @@ while(1)
 
     switch (choice)
     {
-      case 1: CLIENT_LOGIN(fd_SERVER_PIPE, CLIENT_PIPE);
+      case 1: CLIENT_LOGIN(info);
               break;
 
-      case 2: CLIENT_EXIT(fd_SERVER_PIPE, CLIENT_PIPE);
+      case 2: CLIENT_EXIT(info);
               break;
     }
 
   }while (choice < 1 || choice > 2);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int create_CLIENT_PIPE(char * PIPE)
+//FUNÇAO CRIA PIPE CLIENTe
+int create_CLIENT_PIPE(Client_data *info)
 {
-  if ( mkfifo (PIPE, 0664) < 0 )
+  if ( mkfifo (info->CLIENT_PIPE, 0664) < 0 )
   {
     return -1;
+  } else {
+    return 0;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int  open_SERVER_PIPE_WRITE (int *fd)
+//funçao que ABRE PIPE SERVIDOR PARA ESCRITA
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int  open_SERVER_PIPE_WRITE (Client_data *info)
 {
 
-  *fd = open (SERVER_PIPE, O_WRONLY);
+  info->FD_SERVER_PIPE = open (SERVER_PIPE, O_WRONLY);
 
-  if ( *fd < 0 )
+  if ( info->FD_SERVER_PIPE < 0 )
   {
     return -1;
 
@@ -239,37 +261,92 @@ int  open_SERVER_PIPE_WRITE (int *fd)
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//funçao que ALTERA O DIRETORIO ONDE SER CRIADO O PIPE DO CLIENTE
+void change_pipe_path(Client_data *info)
+{
+  sprintf (info->CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FUNÇAO QUE RECEBE RESPOSTA DE LOGIN DO SERVIDOR
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void * receive_from_server( void * info)
+{
+  Client_data * info_client = ( Client_data * ) info;
+
+  if ( OPEN_CLIENT_PIPE_READ(info_client) < 0 )
+  {
+    printf ("Error opening CLIENT PIPE for reading");
+    return NULL;
+  }
+while (1){
+
+  read( info_client->FD_CLIENT_PIPE, &info_client->LOGIN_CONFIRMATION, sizeof(int) );
+  printf("\n\n mensagem: %d\n\n", info_client->LOGIN_CONFIRMATION);
+  if ( info_client->LOGIN_CONFIRMATION < 1){
+
+      pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
+    }
+    if (info_client->LOGIN_CONFIRMATION == SERVER_SHUTDOWN)
+      CLIENT_EXIT(info);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//FUNÇAO VERIFICA SE SERVIDOR ESTA LIGADO atraves do PIPE DELE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void verify_server()
+{
+  if(access(SERVER_PIPE,F_OK) < 0){
+
+    printf (" \n\nServer Is Down, try later..!\n\n");
+
+    exit(0);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//funçao inicial do cliente onde cria  e abre pipes e para alem disso tambem cria a THREAD
 void Client_console()
 {
   MSG_Login LOGIN;
 
-  char CLIENT_PIPE[MAX];
+  Client_data info_client;
 
-  int fd_SERVER_PIPE;
+  info_client.LOGIN_CONFIRMATION = 1;
 
-  sprintf (CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
+  change_pipe_path(&info_client);
 
-  printf ("\n%s\n", CLIENT_PIPE);
-
-  if ( open_SERVER_PIPE_WRITE(&fd_SERVER_PIPE) < 0 )
+  if ( open_SERVER_PIPE_WRITE(&info_client) < 0 )
   {
     printf (" \n Error opening SERVER_PIPE for writing..! \n");
 
     return;
   }
 
-  if ( create_CLIENT_PIPE(CLIENT_PIPE) < 0 )
+  if ( create_CLIENT_PIPE(&info_client) < 0 )
   {
     printf ("\n Error creating CLIENT_PIPE ! \n");
 
     return;
   }
 
-  Client_options(&fd_SERVER_PIPE, CLIENT_PIPE);
+  pthread_create(&info_client.RECEIVE_THREAD, NULL, receive_from_server, (void *) &info_client);
+
+  Client_options(&info_client);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char * argv[])
   {
+    setbuf(stdout, NULL);
+
+    verify_server();
+
     Client_console();
+
     return 0;
   }
