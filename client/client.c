@@ -15,13 +15,13 @@ printf ("\033c");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GO_TO_USER_EXIT(Client_data *info)
 {
-  msg_user_option msg_user_exit;
+  Package User_exit;
 
-  msg_user_exit.type = USER_EXIT;
-  msg_user_exit.user.PID = getpid();
-  msg_user_exit.user.ACTION = USER_EXIT;
+  User_exit.TYPE = USER_EXIT;
+  User_exit.action.user_exit.PID = getpid();
+  User_exit.action.user_exit.TYPE = USER_EXIT;
 
- if ( write (info->FD_SERVER_PIPE, &msg_user_exit, sizeof(msg_user_option)) < 0)
+ if ( write (info->FD_SERVER_PIPE, &User_exit, sizeof(Package)) < 0)
  {
 
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
@@ -142,10 +142,10 @@ int OPEN_CLIENT_PIPE_READ (Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ENVIAR MENSAGEM LOGIN PARA SERVIDOR
-int SEND_CLIENT_SERVER ( Client_data *info, MSG_Login Client_login )
+int SEND_CLIENT_SERVER ( Client_data *info, Package *login )
 {
 
-  if ( write(info->FD_SERVER_PIPE, &Client_login, sizeof(MSG_Login)) < 0 )
+  if ( write(info->FD_SERVER_PIPE, login, sizeof(Package)) < 0 )
   {
     return -1;
   }
@@ -162,26 +162,25 @@ void CLIENT_LOGIN( Client_data *info)
 
   pthread_mutex_init(&info->LOCK_LOGIN, NULL);
 
+  Package login;
+
+  login.TYPE = USER_AUTH;
+
+  login.action.login_request.try_login = 0;
+
   do {
-
-  MSG_Login Client_login;
-
-  Client_login.type = USER_AUTH;
 
   printf ("\nUsername: ");
 
-  scanf (" %49s", Client_login.login.username);
-
-  if (Client_login.login.username == "\n")
-    return;
+  scanf (" %49s", login.action.login_request.username);
 
   printf ("\nPassword:");
 
-  scanf(" %49s", Client_login.login.password);                //TODO alterar para getpass();
+  scanf(" %49s", login.action.login_request.password);                //TODO alterar para getpass();
 
-  Client_login.login.PID = getpid();
+  login.action.login_request.PID = getpid();
 
-  if ( SEND_CLIENT_SERVER (info , Client_login ) < 0)
+  if ( SEND_CLIENT_SERVER (info , &login ) < 0)
   {
     printf ("\nError sending for server login package ...!\n");
     return;
@@ -190,7 +189,10 @@ void CLIENT_LOGIN( Client_data *info)
 
   check_options_login(info);
 
-}while( info->LOGIN_CONFIRMATION != 0);
+  if( info->LOGIN_CONFIRMATION != 0 )
+    login.action.login_request.try_login ++;
+
+}while( login.action.login_request.try_login < 4);
 
     return;
 
@@ -275,21 +277,33 @@ void * receive_from_server( void * info)
 {
   Client_data * info_client = ( Client_data * ) info;
 
+  Package package;
+
   if ( OPEN_CLIENT_PIPE_READ(info_client) < 0 )
   {
     printf ("Error opening CLIENT PIPE for reading");
     return NULL;
   }
-while (1){
+  while (1){
 
-  read( info_client->FD_CLIENT_PIPE, &info_client->LOGIN_CONFIRMATION, sizeof(int) );
-  printf("\n\n mensagem: %d\n\n", info_client->LOGIN_CONFIRMATION);
-  if ( info_client->LOGIN_CONFIRMATION < 1){
+    read( info_client->FD_CLIENT_PIPE, &package, sizeof(Package) );
 
-      pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
+    switch ( package.TYPE )
+    {
+      case SERVER_ANSWER_AUTH:
+        info_client->LOGIN_CONFIRMATION = package.action.login_answer;
+        pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
+        break;
+      case SERVER_SHUTDOWN:
+        printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
+        CLIENT_EXIT(info);
+        break;
+      case SERVER_KICK:
+        printf ("\n\nYou were kicked by the administrator.\n\n");
+        CLIENT_EXIT(info);
+        break;
+
     }
-    if (info_client->LOGIN_CONFIRMATION == SERVER_SHUTDOWN)
-      CLIENT_EXIT(info);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,8 +326,6 @@ void verify_server()
 //funçao inicial do cliente onde cria  e abre pipes e para alem disso tambem cria a THREAD
 void Client_console()
 {
-  MSG_Login LOGIN;
-
   Client_data info_client;
 
   info_client.LOGIN_CONFIRMATION = 1;
