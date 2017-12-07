@@ -199,21 +199,7 @@ void showCurrentUsers(int argc, char * argv[], ClientsData Data)
 
 //####################################################################################
 // NOTE show users function
-void sendfromserverShutdown(ClientsData * Data)
-{
-    int msg = SERVER_SHUTDOWN, i = 0;
 
-    while(i < Data->nClients)
-    {
-      if(write(Data->clients[i].FD,&msg,sizeof(int)) <= 0)
-      {
-        printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador com o PID");
-        return;
-      }
-      i++;
-    }
-    return;
-  }
 void serverShutdown(int argc,char *argv[], ClientsData * Data)
 {
   if(argc != 1)
@@ -222,10 +208,7 @@ void serverShutdown(int argc,char *argv[], ClientsData * Data)
     return;
   }
 
-  sendfromserverShutdown(Data);
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
-
-
   exit(0);
   //TODO fechar pipes cliente;
   //TODO unlink do pipe servidor

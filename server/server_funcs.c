@@ -3,28 +3,6 @@
 #include "../server_support_funcs/server_support_funcs.h"
 
 //NOTE Named pipes
-// aqui vai mostrar todas as variaveis ambiente do sistema;
-/*void showEnviron()
-{
-  int i = 0;
-
-  extern  char **environ;
-
-  while(environ[i]) {
-
-    if( environ[i][0] == 'N' )
-    printf(" %s\n ", environ[i++]);
-  }
-}
-*/
-/*void create_environment_variables()
-{
-    char variable_name[2][10] = {"NENEMY", "NOBJET"};
-    putenv(*(variable_name), "00");
-    putenv(*(variable_name + 1), "00");
-
-}
-*/
 int criaServerPipe()
 {
   if(access(SERVER_PIPE,F_OK) < 0)
@@ -32,14 +10,12 @@ int criaServerPipe()
     if(mkfifo(SERVER_PIPE,0664) < 0)
     {
       perror("Erro ao criar pipe no servidor: ");
-
       return -1;
     }
   }
   else
   {
       printf("Uma instancia do servidor já se econtra inicializada!\n");
-
       exit(1);
   }
 
@@ -61,14 +37,17 @@ int credentialValidation(FILE *f,Login login)
   Login temp;
 
   while(fscanf(f," %s %s ",temp.username,temp.password) == 2)
-  {
     if(strcmp(temp.username, login.username) == 0)
+    {
       if(strcmp(temp.password,login.password) == 0)
         return USER_LOGIN_ACCEPTED;
       else
         return USER_LOGIN_WRONG_PASS;
-  }
+    }
+
+  return USER_DOESNT_EXIST;
 }
+
 
 int verifyPlayerCredentials(Login login)
 {
@@ -142,6 +121,8 @@ int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD)
       return USER_LOGIN_ACCEPTED;
     else
       return USER_ALREADY_IN;
+  else
+    return USER_DOESNT_EXIST;
 }
 
 void removeClientFromArray(ClientsData * Data, char * username)
@@ -272,6 +253,7 @@ void freeSpace(char **array)
   free(array);
 }
 
+
 char ** getComandAndArguments(char * string, char ** command, int * argQuant)
 {
   char *argument;
@@ -357,10 +339,6 @@ void handleCommand(char * str, ClientsData * Data)
   {
     printf("Mapa!!!");
   }
-  else if( strcmp(command, "env") == 0)
-  {
-    //showEnviron();
-  }
   else
   {
     invalidCommand(command);
@@ -389,7 +367,6 @@ void trataSinal(int s)
 
 void console(ClientsData * Data)
 {
-  //create_environment_variables();
   char buffer[buffer_size];
 
   signal(SIGINT,trataSinal);
