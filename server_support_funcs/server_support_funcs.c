@@ -149,9 +149,11 @@ int sendKickToClient(Client cli)
   if(write(cli.FD,&kick_user,sizeof(Package)) <= 0)
   {
     perror("Nao foi possivel enviar a mensagem de kick ao utilizador: ");
+
     return -1;
   }
   return 0;
+  }
 }
 
 int kickUser(int argc, char * argv[],ClientsData * Data)
