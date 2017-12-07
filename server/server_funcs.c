@@ -192,22 +192,15 @@ int authentication(ClientsData * Data,int serverFD, Login *login_request)
 }
 
 //NOTE: Remove user Function
-
+// TODO
 void removeUserByPID(ClientsData * Data, int PID)
 {
   for(int i = 0; i < Data->nClients; i++)
     if(Data->clients[i].PID == PID)
     {
-      Package kick_user;
-      kick_user.TYPE = SERVER_KICK;
-
-      write(Data->clients[i].FD, &kick_user, sizeof(Package));
-
       Data->clients[i] = Data->clients[(Data->nClients)-1];
       (Data->nClients)--;
     }
-
-
 }
 
 void readData(ClientsData * Data,int serverFD)

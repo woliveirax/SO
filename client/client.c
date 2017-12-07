@@ -119,6 +119,7 @@ void check_options_login(Client_data *info)
       printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisal
       unlink(info->CLIENT_PIPE);
       exit(0);
+
   }
   return;
 }
@@ -294,12 +295,10 @@ void * receive_from_server( void * info)
         info_client->LOGIN_CONFIRMATION = package.action.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
-      case SERVER_SHUTDOWN:
-        printf ("\n\nO servidor está a encerrar\n\n");
+      case SERVER_SHUTDOWN: //TODO por printf do sjhutdown
         CLIENT_EXIT(info);
         break;
-      case SERVER_KICK:
-        printf ("\n\nFoi Kickado\n\n");
+      case SERVER_KICK:   //TODO por printf do kick
         CLIENT_EXIT(info);
         break;
 
