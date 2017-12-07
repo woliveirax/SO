@@ -47,30 +47,30 @@ int criaServerPipe()
 }
 
 
-int verifyLoggedPlayers(ClientsData * Data, Login login)
+int verifyLoggedPlayers(ClientsData * Data, Login *login)
 {
   for(int i = 0; i < Data->nClients; i++)
-    if(strcmp(Data->clients[i].username,login.username) == 0)
+    if(strcmp(Data->clients[i].username,login->username) == 0)
       return -1;
 
   return 0;
 }
 
-int credentialValidation(FILE *f,Login login)
+int credentialValidation(FILE *f,Login *login)
 {
   Login temp;
 
   while(fscanf(f," %s %s ",temp.username,temp.password) == 2)
   {
-    if(strcmp(temp.username, login.username) == 0)
-      if(strcmp(temp.password,login.password) == 0)
+    if(strcmp(temp.username, login->username) == 0)
+      if(strcmp(temp.password,login->password) == 0)
         return USER_LOGIN_ACCEPTED;
       else
         return USER_LOGIN_WRONG_PASS;
   }
 }
 
-int verifyPlayerCredentials(Login login)
+int verifyPlayerCredentials(Login *login_request)
 {
   int ret;
 
@@ -85,7 +85,7 @@ int verifyPlayerCredentials(Login login)
     return -1;
   }
 
-  ret = credentialValidation(f,login);
+  ret = credentialValidation(f,login_request);
   fclose(f);
   return ret;
 }
@@ -113,32 +113,32 @@ void addClientToArray(ClientsData * Data, Client cli)
 }
 
 
-void copyLoginToClient(Client * cli, Login login)
+void copyLoginToClient(Client * cli, Login *login)
 {
-  strcpy(cli->username,login.username);
-  cli->PID = login.PID;
+  strcpy(cli->username,login->username);
+  cli->PID = login->PID;
   cli->player = NULL;
 
   openClientFD(cli);
 }
 
-int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD)
+int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD, Login *login_request)
 {
-  Login login;
+
 
   if(Data->nClients == 20)
     return SERVER_FULL;
 
-  if((read(serverFD,&login,sizeof(Login))) < 0)
+  /*if((read(serverFD,&login,sizeof(Login))) < 0)
   {
     perror("Error reading from Server Pipe: ");
     return -1;
   }
+*/
+  copyLoginToClient(cli,login_request);
 
-  copyLoginToClient(cli,login);
-
-  if(verifyPlayerCredentials(login) == 0)
-    if(verifyLoggedPlayers(Data,login) == 0)
+  if(verifyPlayerCredentials(login_request) == 0)
+    if(verifyLoggedPlayers(Data, login_request) == 0)
       return USER_LOGIN_ACCEPTED;
     else
       return USER_ALREADY_IN;
@@ -155,16 +155,23 @@ void removeClientFromArray(ClientsData * Data, char * username)
     }
 }
 
-int authentication(ClientsData * Data,int serverFD)
+int authentication(ClientsData * Data,int serverFD, Login *login_request)
 {
   int response;
   Client cli;
 
-  response = verifyPlayerLoginRequest(Data,&cli,serverFD);
+  Package answer_login;
+
+  response = verifyPlayerLoginRequest(Data,&cli,serverFD, login_request);
+
+  answer_login.TYPE = SERVER_ANSWER_AUTH;
+  answer_login.action.login_answer = response;
+
   if(response == USER_LOGIN_ACCEPTED)
   {
     addClientToArray(Data,cli);
-    if(write(cli.FD,&response,sizeof(int)) < 0)
+
+    if(write(cli.FD,&answer_login,sizeof(Package)) < 0)
     {
       removeClientFromArray(Data,cli.username);
       return -1;
@@ -172,7 +179,7 @@ int authentication(ClientsData * Data,int serverFD)
   }
   else
   {
-    if(write(cli.FD,&response,sizeof(int)) < 0)
+    if(write(cli.FD,&answer_login,sizeof(Package)) < 0)
     {
       close(cli.FD);
       return -1;
@@ -191,38 +198,34 @@ void removeUserByPID(ClientsData * Data, int PID)
   for(int i = 0; i < Data->nClients; i++)
     if(Data->clients[i].PID == PID)
     {
+      Package kick_user;
+      kick_user.TYPE = SERVER_KICK;
+
+      write(Data->clients[i].FD, &kick_user, sizeof(Package));
+
       Data->clients[i] = Data->clients[(Data->nClients)-1];
       (Data->nClients)--;
     }
-}
 
-void removeUser(ClientsData * Data, int serverFD)
-{
-  USER_action cli;
 
-  if(read(serverFD,&cli,sizeof(USER_action)) < 0)
-  {
-    perror("Erro ao ler estrutura de saida de cliente: ");
-    return;
-  }
-
-  removeUserByPID(Data,cli.PID);
 }
 
 void readData(ClientsData * Data,int serverFD)
 {
   int type = 69;
 
-  read(serverFD,&type,sizeof(int));
+  Package package;
 
-  switch(type)
+  read(serverFD,&package,sizeof(Package));
+
+  switch(package.TYPE)
   {
     case USER_AUTH:
-      authentication(Data,serverFD);
+      authentication(Data,serverFD, &package.action.login_request);
       break;
 
     case USER_EXIT:
-      removeUser(Data,serverFD);
+        removeUserByPID(Data, package.action.user_exit.PID);
       break;
 
     case USER_COM:

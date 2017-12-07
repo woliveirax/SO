@@ -201,11 +201,16 @@ void showCurrentUsers(int argc, char * argv[], ClientsData Data)
 // NOTE show users function
 void sendfromserverShutdown(ClientsData * Data)
 {
-    int msg = SERVER_SHUTDOWN, i = 0;
+    int i = 0;
+
+    Package Server_Shutdown;
+
+    Server_Shutdown.TYPE = SERVER_SHUTDOWN;
+    Server_Shutdown.action.server_shutdown = USER_SHUTDOWN;
 
     while(i < Data->nClients)
     {
-      if(write(Data->clients[i].FD,&msg,sizeof(int)) <= 0)
+      if(write(Data->clients[i].FD,&Server_Shutdown,sizeof(Package)) <= 0)
       {
         printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador com o PID");
         return;

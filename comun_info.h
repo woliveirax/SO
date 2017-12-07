@@ -24,7 +24,8 @@
 #define USER_AUTH     1 //User authentication
 #define USER_REQUEST  2 //User Request Cred
 #define USER_ACTION   3 //Movement
-#define USER_EXIT     4 //Client Exit
+#define USER_EXIT     4 //User Logout
+#define USER_SHUTDOWN 5 //Client exit Terminal
 
 //Resposta DA MENSAGEM USER_AUTH
 #define USER_LOGIN_ACCEPTED      0
@@ -34,47 +35,67 @@
 #define SERVER_FULL             -5
 
 //Mensagens de controlo do servidor
-#define SERVER_KICK           20
-#define SERVER_AUTH           21
-#define SERVER_REQ_RESP       22
-#define SERVER_GAME_INFO      23
-#define SERVER_SHUTDOWN       24
+#define SERVER_ANSWER_AUTH    20
+#define SERVER_KICK           21
+#define SERVER_AUTH           22
+#define SERVER_REQ_RESP       23
+#define SERVER_GAME_INFO      24
+#define SERVER_SHUTDOWN       25
 
 
 //Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
 
-typedef struct REQ_REG_USER
+typedef struct USER_LOGIN_
 {
   int PID;
   char username[MAX];
   char password[MAX];
+  int try_login;
 }Login;
 
 // estrutura que será enviada com o request para o servidor adicionar o novo utilizador;
 
-typedef struct MSG_REQ_REG_USER
+typedef struct MSG_USER_EXIT
 {
-  int type;
-  Login login;
-}MSG_Login;
-
-
-typedef struct USER_OPTION
-{
+  int TYPE;
   int PID;
-  int ACTION;
-}USER_action;
-
-typedef struct MSG_USER_OPTION
+}User_Exit;
+// Extrutura que representa o movimento do Bomberman a ser enviada para o servidor;
+typedef union ACTION
 {
-  int type;
-  USER_action user;
-}msg_user_option;
+  Login login_request;  // pedido de login por parte do jogador;
+  int login_answer;     // resposta de login do SERVIDOR
+  User_Exit user_exit;  // mensagem a enviar que o Client vai sair do programa   TODO
+  int server_shutdown;  // inteiro enviado para informar que servidor vai encerrar
+
+}Action;
+
+typedef struct PACKAGE
+{
+  int TYPE;
+  Action action;
+}Package;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //union onde irão estar todas as açoes que poderam ser feitas, bomberman, Client, user etc:...
 
-typedef struct ACTION
+/*typedef struct ACTION
 
 {
 
@@ -115,5 +136,5 @@ typedef struct MSG_BomberMan_Movement
   Action action;
 
 }Movement;
-
+*/
 #endif /* COMUN_INFO_H */
