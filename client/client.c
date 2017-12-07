@@ -295,11 +295,11 @@ void * receive_from_server( void * info)
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
       case SERVER_SHUTDOWN:
-        printf ("\n\nO servidor está a encerrar\n\n");
+        printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
       case SERVER_KICK:
-        printf ("\n\nFoi Kickado\n\n");
+        printf ("\n\nYou were kicked by the administrator.\n\n");
         CLIENT_EXIT(info);
         break;
 
