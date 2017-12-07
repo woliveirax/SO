@@ -28,8 +28,8 @@
 
 //Resposta DA MENSAGEM USER_AUTH
 #define USER_LOGIN_ACCEPTED      0
-#define USER_DOESNT_EXIST       -2
-#define USER_LOGIN_WRONG_PASS   -3
+#define USER_DOESNT_EXIST       -1
+#define USER_LOGIN_WRONG_PASS   -2
 #define USER_ALREADY_IN         -4
 #define SERVER_FULL             -5
 
