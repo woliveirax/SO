@@ -3,8 +3,8 @@ all: server_interface
 server_interface:	server_funcs.o	server_interface.o server_support_funcs.o
 	gcc server_funcs.o	server_interface.o server_support_funcs.o -o	server_interface -lpthread
 
-debug: server_funcs.o	server_interface.o
-	gcc server_funcs.o	server_interface.o -g -o	server_interface -lpthread
+debug: server_funcs.o	server_interface.o server_support_funcs.o
+	gcc server_funcs.o	server_interface.o server_support_funcs.o -g -o	server_interface -lpthread
 
 server_support_funcs.o: ../server_support_funcs/server_support_funcs.h ../server_support_funcs/server_support_funcs.c
 	gcc -c ../server_support_funcs/server_support_funcs.c

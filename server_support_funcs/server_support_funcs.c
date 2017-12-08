@@ -246,3 +246,10 @@ void serverShutdown(int argc,char *argv[], ClientsData * Data)
   //TODO unlink do pipe servidor
   //TODO acabar threads Servidor
 }
+
+//####################################################################################
+// NOTE show users function
+void clearScreen()
+{
+  printf("\033c");
+}

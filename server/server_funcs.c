@@ -328,6 +328,14 @@ void handleCommand(char * str, ClientsData * Data)
   {
     printf("Mapa!!!");
   }
+  else if(strcmp(command,"help") == 0)
+  {
+    help(argc,arguments);
+  }
+  else if (strcmp(command,"clear") == 0)
+  {
+    clearScreen();
+  }
   else if( strcmp(command, "env") == 0)
   {
     printf ("\nAvailable in a few days\n");

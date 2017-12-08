@@ -3,7 +3,7 @@ client:
 
 clean:
 		rm client
-		rm *.o
 
 debug:
-	gcc client.c client.h -g -o clientDebug
+	gcc client.c client.h -g -o client -lpthread
+	gdb ./client

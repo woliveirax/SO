@@ -17,6 +17,6 @@ int addUser (int argc, char *argv[]);
 void showCurrentUsers(int argc, char * argv[], ClientsData Data);
 void serverShutdown(int argc, char * argv[], ClientsData * Data);
 int kickUser(int argc, char * argv[],ClientsData * Data);
-
+void clearScreen();
 
 #endif
