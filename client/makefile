@@ -1,5 +1,5 @@
 client:
-	gcc client.c client.h -o client
+	gcc client.c client.h -o client -lpthread
 
 clean:
 		rm client

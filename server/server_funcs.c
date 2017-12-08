@@ -222,7 +222,7 @@ void * pipeMain(void * rcvData)
 
   criaServerPipe();
 
-  if((serverFD = open(SERVER_PIPE,O_RDONLY)) < 0)
+  if((serverFD = open(SERVER_PIPE,O_RDWR)) < 0)
   {
     perror("Erro ao abrir pipe do servidor: ");
     return NULL;
