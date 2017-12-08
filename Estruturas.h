@@ -1,55 +1,43 @@
 typedef struct Game {
-  int PID;
-  Segment *map; // 20x30
-  Client *clients[20];
-
-}, Game;
-
-typedef struct client {
-  int PID;
-  char username[50];
-  char password[50];
-  Player *player;
-
-},Client;
+  int time;       //Tempo limite do jogo NOTE: E preciso ?
+  Segment * map;  //Cunjunto de segmentos que irao constituir o mapa.
+}Game;
 
 typedef struct Bomb {
-  int nBombs;
-  int posx,posy;
+  int nBombs;        //Numero de bombas disponiveis
+  int posx,posy;     //Posição da bomba (ainda nao definida)
   int explosionSize; //Tamanho explosao
-},Bomb;
+}Bomb;
 
 typedef struct player {
-  int PID;
-  int posx,posy;
-  int score;
-  Bomb nuke;
-  Bomb grenade;
+  int posx,posy;     //Posicao do jogador
+  int score;         //Score do jogador
+  Bomb nuke;         //bombas
+  Bomb grenade;      //Bombinhas
 
-  //int life quantity TODO: Consider
-},Player;
+  //int vidas NOTE: considerar ?
+}Player;
 
 typedef struct enemy {
-    int ID;         //ID do inimigo
-    int posx,posy;  //Posicao
-    char drop; //TODO ou struct, rever. //o drop que o inimigo pode deixar quando morre
-},Enemy;
+    pthread_t enemy_ID;    //ID da thread do inimigo
+    int posx,posy;         //Posicao do inimigo
+    char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
+}Enemy;
 
 typedef struct exit {
   int open;       //Saida eberta ou fechada
   int posx,posy;  //Posicao da saida
-},Exit;
+}Exit;
 
+
+//NOTE: Redundante ?
 typedef struct Objective {
-  int value;
-  int posx,posy;
-}, Objective;
+  int value;     //Pontuação ao obter objetivo
+  int posx,posy; //Posicao do objetivo
+}Objective;
 
-
-
-//Tagged union de maneira a ser somente um dos tipos a existerem em cada segmento do mapa
-//Polpando assim a quantidade de dados a enviar p o processo
-typedef union block { //falta testar - Tagged Union - Possivel alteração
+//FIXME:Falta planear melhor a grelha aqui...
+typedef union block {
   char wall;
   char bonus;
   Objective objective;
@@ -58,20 +46,15 @@ typedef union block { //falta testar - Tagged Union - Possivel alteração
   Exit exit;
   Bomb bomb;
 
-} ,Block;
+}Block;
 
 typedef struct Segment {
   int type; //tipo de dados que esta em bloco
   Block block;  //Dados do segmento
-},Segment;
-
-typedef struct server {
-  Client *clientes;
-  Game *Game;
-}, Server;
+}Segment;
 
 typedef struct topTen {
   int pos;
   char nome[100];
   int score;
-}, Top10;
+}Top10;

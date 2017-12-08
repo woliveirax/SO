@@ -17,13 +17,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct Client_Data
 {
-  pthread_t RECEIVE_THREAD;
-  pthread_cond_t AWAITED_REPLY_LOGIN;
-  pthread_mutex_t LOCK_LOGIN;
-  int LOGIN_CONFIRMATION;
-  int FD_SERVER_PIPE;
-  int FD_CLIENT_PIPE;
-  char CLIENT_PIPE[MAX];
+  pthread_t RECEIVE_THREAD;           //ID da thread a receber
+  pthread_cond_t AWAITED_REPLY_LOGIN; //Condicao da thread
+  pthread_mutex_t LOCK_LOGIN;         //mecanismo de espera de resposta
+  int LOGIN_CONFIRMATION;             //Resposta do servidor
+  int FD_SERVER_PIPE;                 //FD do servidor
+  int FD_CLIENT_PIPE;                 //FD do cliente
+  char CLIENT_PIPE[MAX];              //Nome do pipe do cliente
   int PID;
 
 }Client_data;

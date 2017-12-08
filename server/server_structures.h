@@ -13,24 +13,25 @@ typedef struct Bomb {
 }Bomb;
 
 typedef struct player {
-  int PID;
-  int posx,posy;
-  int score;
-  Bomb nuke;
-  Bomb grenade;
-} Player;
+  int posx,posy;     //Posicao do jogador
+  int score;         //Score do jogador
+  Bomb nuke;         //bombas
+  Bomb grenade;      //Bombinhas
+
+  //int vidas NOTE: considerar ?
+}Player;
 
 typedef struct client {
-  int PID;
-  int FD;
-  char username[MAX];
-  Player *player;
+  int PID;                    //PID do jogador
+  int FD;                     //FD do pipe do jogador
+  char username[MAX];         //Username do jogador
+  Player *player;             //Ponteiro para o boneco do jogador
 
 } Client;
 
 typedef struct RCVED_DATA {
-  Client clients[MAX_CLI];
-  int nClients;
+  Client clients[MAX_CLI];    //Guarda array de clientes ligados ao servidor
+  int nClients;               //Contador de jogadores
 }ClientsData;
 
 #endif
