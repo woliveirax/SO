@@ -154,7 +154,7 @@ int sendKickToClient(Client cli)
   }
   return 0;
   }
-}
+
 
 int kickUser(int argc, char * argv[],ClientsData * Data)
 {
