@@ -103,6 +103,7 @@ int help(int argc, char *argv[])
   printf("\n\ngame\n\t-Mostra informacoes do jogo corrente:\n\t\t-Jogadores e as suas pontuações;\n\t\t-Objetos objetivos a apanhar");
   printf("\n\nshutdown \n\t-Termina o jogo atual e desliga o servidor.");
   printf("\n\nmap [nome do ficheiro]\n\t-Muda o mapa do jogo, a mudanca sera feita no fim do jogo atual, se este estiver a decorrer.\n");
+  printf("\n\n env - Shows all environment variables as well as their value, created by the administrator\n");
 
   return 0;
 }
@@ -141,15 +142,19 @@ int checkIfUserOn(ClientsData * Data, char * user)
 
 int sendKickToClient(Client cli)
 {
-  int msg = SERVER_KICK;
+  Package kick_user;
 
-  if(write(cli.FD,&msg,sizeof(int)) <= 0)
+  kick_user.TYPE = SERVER_KICK;
+
+  if(write(cli.FD,&kick_user,sizeof(Package)) <= 0)
   {
     perror("Nao foi possivel enviar a mensagem de kick ao utilizador: ");
+
     return -1;
   }
   return 0;
-}
+  }
+
 
 int kickUser(int argc, char * argv[],ClientsData * Data)
 {
@@ -164,7 +169,9 @@ int kickUser(int argc, char * argv[],ClientsData * Data)
   if((pos = checkIfUserOn(Data,argv[1])) >= 0)
   {
     sendKickToClient(Data->clients[pos]);
+
     removeClientFromServer(Data,argv[1]); //TODO alterar isto para mandar POS.
+
     return 0;
   }
   else
@@ -206,6 +213,7 @@ void sendfromserverShutdown(ClientsData * Data)
     Package Server_Shutdown;
 
     Server_Shutdown.TYPE = SERVER_SHUTDOWN;
+
     Server_Shutdown.action.server_shutdown = USER_SHUTDOWN;
 
     while(i < Data->nClients)
@@ -213,6 +221,7 @@ void sendfromserverShutdown(ClientsData * Data)
       if(write(Data->clients[i].FD,&Server_Shutdown,sizeof(Package)) <= 0)
       {
         printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador com o PID");
+
         return;
       }
       i++;
@@ -228,6 +237,7 @@ void serverShutdown(int argc,char *argv[], ClientsData * Data)
   }
 
   sendfromserverShutdown(Data);
+
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
 
 

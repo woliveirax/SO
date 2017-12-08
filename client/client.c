@@ -295,10 +295,12 @@ void * receive_from_server( void * info)
         info_client->LOGIN_CONFIRMATION = package.action.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
-      case SERVER_SHUTDOWN: //TODO por printf do sjhutdown
+      case SERVER_SHUTDOWN:
+        printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
-      case SERVER_KICK:   //TODO por printf do kick
+      case SERVER_KICK:
+        printf ("\n\nYou were kicked by the administrator.\n\n");
         CLIENT_EXIT(info);
         break;
 

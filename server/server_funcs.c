@@ -3,28 +3,6 @@
 #include "../server_support_funcs/server_support_funcs.h"
 
 //NOTE Named pipes
-// aqui vai mostrar todas as variaveis ambiente do sistema;
-/*void showEnviron()
-{
-  int i = 0;
-
-  extern  char **environ;
-
-  while(environ[i]) {
-
-    if( environ[i][0] == 'N' )
-    printf(" %s\n ", environ[i++]);
-  }
-}
-*/
-/*void create_environment_variables()
-{
-    char variable_name[2][10] = {"NENEMY", "NOBJET"};
-    putenv(*(variable_name), "00");
-    putenv(*(variable_name + 1), "00");
-
-}
-*/
 int criaServerPipe()
 {
   if(access(SERVER_PIPE,F_OK) < 0)
@@ -129,12 +107,6 @@ int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD, Login 
   if(Data->nClients == 20)
     return SERVER_FULL;
 
-  /*if((read(serverFD,&login,sizeof(Login))) < 0)
-  {
-    perror("Error reading from Server Pipe: ");
-    return -1;
-  }
-*/
   copyLoginToClient(cli,login_request);
 
   if(verifyPlayerCredentials(login_request) == 0)
@@ -198,7 +170,13 @@ void removeUserByPID(ClientsData * Data, int PID)
   for(int i = 0; i < Data->nClients; i++)
     if(Data->clients[i].PID == PID)
     {
+      Package kick_user;
+      kick_user.TYPE = SERVER_KICK;
+
+      write(Data->clients[i].FD, &kick_user, sizeof(Package));
+
       Data->clients[i] = Data->clients[(Data->nClients)-1];
+
       (Data->nClients)--;
     }
 }
@@ -238,14 +216,13 @@ void readData(ClientsData * Data,int serverFD)
 
 void * pipeMain(void * rcvData)
 {
-
   ClientsData * Data = (ClientsData *) rcvData;
 
   int serverFD;
 
   criaServerPipe();
 
-  if((serverFD = open(SERVER_PIPE,O_RDONLY)) < 0)
+  if((serverFD = open(SERVER_PIPE,O_RDWR)) < 0)
   {
     perror("Erro ao abrir pipe do servidor: ");
     return NULL;
@@ -253,8 +230,6 @@ void * pipeMain(void * rcvData)
 
   while(1) //TODO ver isto NOTE: SHUTDOWN
     readData(Data,serverFD);
-
-  //shutdownPipe(serverFD);
 }
 
 
@@ -355,7 +330,7 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if( strcmp(command, "env") == 0)
   {
-    //showEnviron();
+    printf ("\nAvailable in a few days\n");
   }
   else
   {
