@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <ncurses.h>
 
 #define FILE_USERS "../Data/users.data"
 #define MAX 50
@@ -25,10 +26,21 @@ typedef struct Client_Data
   int FD_CLIENT_PIPE;                 //FD do cliente
   char CLIENT_PIPE[MAX];              //Nome do pipe do cliente
   int PID;
+  WINDOW *MAPVIEWER;                  // Janela para ver Mapa;
+  WINDOW *TIMEGAMEVIEWER;             // janela para ver o tempo de jogo
+  WINDOW *LOGOGAME;                   // janela onde estará o nome do jogo
+  WINDOW *INFOGAME;                   // janela para ver informaçao relativa ao jogo
+  WINDOW *HISTORYGAMEKEY;             // janela para ver informaçao digitada pelo utilizador;
 
 }Client_data;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+typedef struct Map_Client
+{
+
+
+}map;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Client_options(Client_data *info);
 int main(int argc, char * argv[]);

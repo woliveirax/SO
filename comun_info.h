@@ -20,12 +20,13 @@
 
 
 //tipo de mensagem.
-#define USER_COM      0 //Client connection
-#define USER_AUTH     1 //User authentication
-#define USER_REQUEST  2 //User Request Cred
-#define USER_ACTION   3 //Movement
-#define USER_EXIT     4 //User Logout
-#define USER_SHUTDOWN 5 //Client exit Terminal
+#define USER_COM            0 //Client connection
+#define USER_AUTH           1 //User authentication
+#define USER_REQUEST_CRED   2 //User Request Cred
+#define USER_ACTION         3 //Movement
+#define USER_EXIT           4 //User Logout
+#define USER_SHUTDOWN       5 //Client exit Terminal
+#define USER_REQUEST_LOGOUT 6 // pedido de logout pelo utilizador
 
 //Resposta DA MENSAGEM USER_AUTH
 #define USER_LOGIN_ACCEPTED      0
@@ -41,6 +42,7 @@
 #define SERVER_REQ_RESP       23
 #define SERVER_GAME_INFO      24
 #define SERVER_SHUTDOWN       25
+#define SERVER_ANSWER_LOGOUT  26
 
 
 //Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
@@ -73,6 +75,7 @@ typedef union ACTION
 typedef struct PACKAGE
 {
   int TYPE;
+  int PID;
   Action action;
 }Package;
 
