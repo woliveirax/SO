@@ -36,16 +36,18 @@ typedef struct Objective {
   int posx,posy; //Posicao do objetivo
 }Objective;
 
+
+
 //FIXME:Falta planear melhor a grelha aqui...
 typedef union block {
   char wall;
   char bonus;
   Objective objective;
-  Enemy *enemy;
-  Player *player;
+  Enemy * enemy;
+  Player * player;
   Exit exit;
   Bomb bomb;
-
+  
 }Block;
 
 typedef struct Segment {

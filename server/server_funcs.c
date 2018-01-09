@@ -353,7 +353,7 @@ void invalidCommand(char * command)
 void trataSinal(int s)
 {
   if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
-    unlink(SERVER_PIPE);
+    unlink(SERVER_PIPE); //TODO TRATAR SIGINT E SIGUSR 1 PARA SHUTDOWN
     exit(0);
 }
 

@@ -1,20 +1,12 @@
 #ifndef COMUN_INFO_H
-
 #define COMUN_INFO_H
 
-
-
 #define MAX 50
+#define SERVER_PIPE "../Data/ServerPipe"
+#define CLIENT_PIPE_TEMPLATE "../Data/Client_%d"
 
-
-
-//#define SERVER_PIPE "../Data/ServerPipe" TODO: Trocar isto
-
-#define SERVER_PIPE "/tmp/ServerPipe"
-
-#define CLIENT_PIPE_TEMPLATE "/tmp/Client_%d"
-
-//#define CLIENT_PIPE_TEMPLATE "../Data/Client_%d" TODO: Trocar isto
+//#define SERVER_PIPE "/tmp/ServerPipe"
+//#define CLIENT_PIPE_TEMPLATE "/tmp/Client_%d"
 
 #define USERS_LOGIN_DATA "../Data/users.data"
 
@@ -44,100 +36,98 @@
 #define SERVER_SHUTDOWN       25
 #define SERVER_ANSWER_LOGOUT  26
 
+//Representacao
 
-//Estrutura usada para ser enviada pelo cliente para ser verificado o seu login
+enum messageType {
+  LOGIN = 0,
+  LOGOUT,
+  COMMAND,
+  CHAT
+}
 
+enum commandos {
+  UP = KEY_UP,
+  DOWN = KEY_DOWN,
+  RIGHT = KEY_RIGHT,
+  LEFT = KEY_LEFT,
+  SMALLBOMB = KEY_Z   //TODO REVER ISTO
+  BIGBOMB = KEY_X     //TODO REVER ISTO
+  JUMP = KEY_SPACE
+  QUIT = KEY_Q
+  CHAT = KEY_ENTER
+}
+
+//PACOTE DO CLIENTE:
 typedef struct USER_LOGIN_
 {
-  int PID;
   char username[MAX];
   char password[MAX];
   int try_login;
+  int login_answer;
 }Login;
 
-// estrutura que será enviada com o request para o servidor adicionar o novo utilizador;
-
-typedef struct MSG_USER_EXIT
-{
-  int TYPE;
-  int PID;
-}User_Exit;
 // Extrutura que representa o movimento do Bomberman a ser enviada para o servidor;
 typedef union ACTION
 {
+  int key;
   Login login_request;  // pedido de login por parte do jogador;
-  int login_answer;     // resposta de login do SERVIDOR
-  User_Exit user_exit;  // mensagem a enviar que o Client vai sair do programa   TODO
-  int server_shutdown;  // inteiro enviado para informar que servidor vai encerrar
-
 }Action;
 
-typedef struct PACKAGE
+typedef struct PACKAGE_CLI
 {
   int TYPE;
   int PID;
   Action action;
-}Package;
+}Package_cli;
 
 
+//PACOTE DO SERVIDO:
+typedef struct Bomb {
+  pthread_t bomb_id;
+  int posx,posy;     //Posição da bomba (ainda nao definida)
+  int explosionSize; //Tamanho explosao
+}Bomb;
 
+typedef struct enemy {
+    pthread_t enemy_ID;    //ID da thread do inimigo
+    int posx,posy;         //Posicao do inimigo
+    char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
+}Enemy;
 
+typedef struct player {
+  int PID;           //Para identificar o proprio jogador.
+  int posx,posy;     //Posicao do jogador
+  int score;         //Score do jogador
+  int bomb;          //Bombinhas
+  int megabomb;
+  //TODO: int vidas ? se houve tempo
+}Player;
 
+enum cellType {
+  FREE = 0,   //Pos Livre
+  WALL,       //parede Destrutivel
+  IRON_WALL,  //Parede indestrutivel
+  ENEMY,
+  PLAYER,
+  BOMB,
+  MEGABOMB,
+  OBJECT,
+  BONUS,
+  EXIT,
+  LOGIN_RESPONSE,
+  CHAT
+}
 
+typedef union info {
+  int login_answer;
+  int exit;
+  char msg[30];
+  Player player;
 
+}Info;
 
-
-
-
-
-
-
-
-
-
-
-//union onde irão estar todas as açoes que poderam ser feitas, bomberman, Client, user etc:...
-
-/*typedef struct ACTION
-
-{
-
-  int PID;
-
-  int Movement;
-
-                  // variavel para defenir possiveis tarefas do bomberman;
-
-                  //    valor      assignment        Tecla
-
-                  // Movement = 1   NORTH           up key
-
-                  // Movement = 2   EAST            left key
-
-                  // Movement = 3   SOUTH           low key
-
-                  // Movement = 4   WEST            right key
-
-                  // Movement = 5   bomb nuke       C key
-
-                  // Movement = 6   Bomb granede    D key
-
-                  // Movement = 7   jump            SPACE key
-
-
-
-}Action;
-
-// Extrutura que representa o movimento do Bomberman a ser enviada para o servidor;
-
-typedef struct MSG_BomberMan_Movement
-
-{
-
-  int type;
-
-  Action action;
-
-}Movement;
-*/
-#endif /* COMUN_INFO_H */
+typedef struct gameInfo {
+  cellType a;
+  Info info;
+  int time;
+} gameInfo
