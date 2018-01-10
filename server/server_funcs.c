@@ -133,8 +133,8 @@ int authentication(ClientsData * Data,int serverFD, Login *login_request, int PI
 
   response = verifyPlayerLoginRequest(Data,&cli,serverFD, login_request, PID);
 
-  answer_login.cellType = cellType_LOGIN_RESPONSE;
-  answer_login.info.login_answer = response;
+  answer_login.type = cellType_LOGIN_RESPONSE;
+  answer_login.login_answer = response;
 
   if(response == USER_LOGIN_ACCEPTED)
   {
@@ -168,7 +168,7 @@ void removeUserByPID(ClientsData * Data, int PID)
     if(Data->clients[i].PID == PID)
     {
       gameInfo SERVER_ANSWER_LOG;   // resposta ao servidor que vai sair do login
-      SERVER_ANSWER_LOG.cellType = cellType_LOGOUT_RESPONSE;
+      SERVER_ANSWER_LOG.type = cellType_LOGOUT_RESPONSE;
 
       write(Data->clients[i].FD, &SERVER_ANSWER_LOG, sizeof(gameInfo));
 
@@ -350,8 +350,19 @@ void invalidCommand(char * command)
 void trataSinal(int s)
 {
   if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
+  {
     unlink(SERVER_PIPE); //TODO TRATAR SIGINT E SIGUSR 1 PARA SHUTDOWN
     exit(0);
+  }
+
+  /*
+  if(s == SIGUSR1)
+  {
+    serverShutdown(1,s,Global_Data);
+    unlink(SERVER_PIPE);
+    exit(0);
+  }
+  */
 }
 
 //IGNORE SIGNALS: TODO
@@ -361,6 +372,7 @@ void trataSinal(int s)
 
 void console(ClientsData * Data)
 {
+  Global_Data = Data;
   //create_environment_variables();
   char buffer[buffer_size];
 
