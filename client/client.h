@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <pthread.h>
 #include <ncurses.h>
+#include <signal.h>
 
 
 #define FILE_USERS "../Data/users.data"

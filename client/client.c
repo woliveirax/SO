@@ -390,14 +390,25 @@ void Client_console()
 
   Client_options(&info_client);
 }
+
+void HandleSignal(int s){
+  if(s == SIGINT)
+  {
+    printf("Please, choose exit to leave!\n");
+    return;
+  }
+
+  return;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char * argv[])
   {
+    signal(SIGINT,HandleSignal);
     setbuf(stdout, NULL);
 
     verify_server();
-
     Client_console();
 
     return 0;

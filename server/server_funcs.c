@@ -347,7 +347,7 @@ void invalidCommand(char * command)
   fprintf(stderr,"O comando:\' %s \' nao existe. utilize help para ajuda!",command);
 }
 
-void trataSinal(int s)
+void HandleSignal(int s)
 {
   if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
   {
@@ -375,8 +375,7 @@ void console(ClientsData * Data)
   Global_Data = Data;
   //create_environment_variables();
   char buffer[buffer_size];
-
-  signal(SIGINT,trataSinal);
+  signal(SIGINT,HandleSignal);
 
   //TODO trata sinais
   setbuf(stdout,NULL);

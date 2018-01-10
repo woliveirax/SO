@@ -8,7 +8,6 @@ void addUserToFile(char *user, char *pass)
   if((fd = fopen(users_file,"at")) == NULL)
   {
     perror("Erro: ");
-
   }
   else
   {
@@ -60,7 +59,7 @@ int addUser (int argc, char *argv[])
   if(argc != 3)
   {
     printf("Modo de uso: %s username password\n",argv[0]);
-    exit(1);
+    return 1;
   }
 
   if(verifyUserFile() == 0)
@@ -136,6 +135,7 @@ int checkIfUserOn(ClientsData * Data, char * user)
     if(strcmp(Data->clients[i].username, user) == 0)
       return i;
   }
+  
   printf("O cliente \'%s\' não se encontra ligado.",user);
   return -1;
 }
