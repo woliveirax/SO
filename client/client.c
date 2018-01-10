@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void cls()
 {
-printf ("\033c");
+  printf ("\033c");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que faz com que o utilizador faça logout
@@ -325,10 +325,10 @@ void * receive_from_server( void * info)
 
     read( info_client->FD_CLIENT_PIPE, &Package_Server, sizeof(gameInfo) );
 
-    switch ( Package_Server.cellType )
+    switch (Package_Server.type)
     {
       case cellType_LOGIN_RESPONSE:
-        info_client->LOGIN_CONFIRMATION = Package_Server.info.login_answer;
+        info_client->LOGIN_CONFIRMATION = Package_Server.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
       case cellType_SERVER_SHUTDOWN:
