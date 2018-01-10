@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <ncurses.h>
 
+
 #define FILE_USERS "../Data/users.data"
 #define MAX 50
 
