@@ -170,10 +170,10 @@ void removeUserByPID(ClientsData * Data, int PID)
   for(int i = 0; i < Data->nClients; i++)
     if(Data->clients[i].PID == PID)
     {
-      Package kick_user;
-      kick_user.TYPE = SERVER_KICK;
+      Package SERVER_ANSWER_LOG;   // resposta ao servidor que vai sair do login
+      SERVER_ANSWER_LOG.TYPE = SERVER_ANSWER_LOGOUT;
 
-      write(Data->clients[i].FD, &kick_user, sizeof(Package));
+      write(Data->clients[i].FD, &SERVER_ANSWER_LOG, sizeof(Package));
 
       Data->clients[i] = Data->clients[(Data->nClients)-1];
 
@@ -196,7 +196,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-        removeUserByPID(Data, package.action.user_exit.PID);
+        removeUserByPID(Data, package.PID);
       break;
 
     case USER_COM:
@@ -205,14 +205,10 @@ void readData(ClientsData * Data,int serverFD)
     case USER_ACTION:
       break;
 
-    case USER_REQUEST:
-      break;
-
     default:
       break;
   }
 }
-
 
 void * pipeMain(void * rcvData)
 {
@@ -357,7 +353,7 @@ void invalidCommand(char * command)
 void trataSinal(int s)
 {
   if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
-    unlink(SERVER_PIPE);
+    unlink(SERVER_PIPE); //TODO TRATAR SIGINT E SIGUSR 1 PARA SHUTDOWN
     exit(0);
 }
 

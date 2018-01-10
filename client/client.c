@@ -18,17 +18,16 @@ void GO_TO_USER_EXIT(Client_data *info)
   Package User_exit;
 
   User_exit.TYPE = USER_EXIT;
-  User_exit.action.user_exit.PID = getpid();
-  User_exit.action.user_exit.TYPE = USER_EXIT;
+  User_exit.PID = getpid();
 
  if ( write (info->FD_SERVER_PIPE, &User_exit, sizeof(Package)) < 0)
  {
 
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
 
-   return;
+   exit(1);
  }
- Client_options(info);
+ return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,9 +44,60 @@ void VIEW_TOP_10(Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void GO_TO_GAME(Client_data *info)
+void CREATE_SPACE_GAME(Client_data *info)
 {
-  printf ("Available in a few days");
+
+  initscr(); // inicia a janela de ncurses
+  refresh(); // atualiza
+  start_color(); // inicia cores
+  init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
+//       altura Comprimento posicao y posicao
+
+  info->LOGOGAME = newwin(4,80,0,0);
+  info->INFOGAME = newwin(20,25,4,0);
+  info->MAPVIEWER = newwin( 20, 30,4,25);
+  info->TIMEGAMEVIEWER = newwin (4,25,4,55);
+  info->HISTORYGAMEKEY = newwin(16,25,8,55);
+  // pintar janela
+  wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
+  wbkgd(info->LOGOGAME, COLOR_PAIR(1));
+  wbkgd(info->INFOGAME, COLOR_PAIR(1));
+  wbkgd(info->TIMEGAMEVIEWER, COLOR_PAIR(1));
+  wbkgd(info->HISTORYGAMEKEY, COLOR_PAIR(1));
+  //fazer casquilho
+  box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
+  box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
+  box(info->INFOGAME, ACS_VLINE,ACS_HLINE);
+  box(info->TIMEGAMEVIEWER, ACS_VLINE,ACS_HLINE);
+  box(info->HISTORYGAMEKEY, ACS_VLINE,ACS_HLINE);
+
+/*  for ( int i = 0 ; i < 20 ; i++){
+    for ( int j = 0; j < 30 ; j++){
+      mvwprintw(teste, i, j, "b");
+    }
+  }
+  */
+  //box(teste, ACS_VLINE, ACS_HLINE);
+  wgetch(info->MAPVIEWER);
+  wgetch(info->LOGOGAME);
+  wgetch(info->INFOGAME);
+  wgetch(info->TIMEGAMEVIEWER);
+  wgetch(info->HISTORYGAMEKEY);
+  // deve-se fazer o refresh se quiser mostrar alteraçoes
+  wrefresh(info->MAPVIEWER);
+  wrefresh(info->LOGOGAME);
+  wrefresh(info->INFOGAME);
+  wrefresh(info->TIMEGAMEVIEWER);
+  wrefresh(info->HISTORYGAMEKEY);
+
+  // aqui fecha janela
+  delwin(info->MAPVIEWER);
+  delwin(info->LOGOGAME);
+  delwin(info->INFOGAME);
+  delwin(info->TIMEGAMEVIEWER);
+  delwin(info->HISTORYGAMEKEY);
+  endwin();
+
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,13 +114,13 @@ void USER_MENU( Client_data *info)
       printf("1.Play.\n");
       printf("2.Top 10.\n");
       printf("3.View connected users.\n");
-      printf("4.Exit.\n");
+      printf("4.Logout.\n");
       printf("Choice: ");
       scanf(" %d", &choice);
 
       switch (choice)
       {
-        case 1 : GO_TO_GAME(info);
+        case 1 : CREATE_SPACE_GAME(info);
                  break;
         case 2 : VIEW_TOP_10(info);
                  break;
@@ -299,8 +349,8 @@ void * receive_from_server( void * info)
         printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
-      case SERVER_KICK:
-        printf ("\n\nYou were kicked by the administrator.\n\n");
+      case SERVER_ANSWER_LOGOUT:
+        printf ("\n\n Successful logout..!\n\n");
         CLIENT_EXIT(info);
         break;
 

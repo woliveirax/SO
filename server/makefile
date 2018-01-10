@@ -1,7 +1,7 @@
 all: server_interface
 
 server_interface:	server_funcs.o	server_interface.o server_support_funcs.o
-	gcc server_funcs.o	server_interface.o server_support_funcs.o -o	server_interface -lpthread
+	gcc server_funcs.o	server_interface.o server_support_funcs.o -o	server_interface -lpthread -lncurses
 
 debug: server_funcs.o	server_interface.o server_support_funcs.o
 	gcc server_funcs.o	server_interface.o server_support_funcs.o -g -o	server_interface -lpthread
