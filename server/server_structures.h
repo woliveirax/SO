@@ -37,6 +37,7 @@ typedef struct ENEMY {
 typedef struct client {
   int PID;                    //PID do jogador
   int FD;                     //FD do pipe do jogador
+  int inGame;
   char username[MAX];         //Username do jogador
   Player *player;             //Ponteiro para o boneco do jogador
 

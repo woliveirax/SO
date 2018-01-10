@@ -144,7 +144,7 @@ int sendKickToClient(Client cli)
 {
   gameInfo kick_user;
 
-  kick_user.cellType = cellType_SERVER_KICK;
+  kick_user.type = cellType_SERVER_KICK;
 
   if(write(cli.FD,&kick_user,sizeof(gameInfo)) <= 0)
   {
@@ -212,7 +212,7 @@ void sendfromserverShutdown(ClientsData * Data)
 
     gameInfo Server_Shutdown;
 
-    Server_Shutdown.cellType = cellType_SERVER_SHUTDOWN;
+    Server_Shutdown.type = cellType_SERVER_SHUTDOWN;
 
     while(i < Data->nClients)
     {
@@ -235,9 +235,9 @@ void serverShutdown(int argc,char *argv[], ClientsData * Data)
   }
 
   sendfromserverShutdown(Data);
-
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
 
+  //TODO espera threads;
 
   exit(0);
   //TODO fechar pipes cliente;

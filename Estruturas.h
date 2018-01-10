@@ -43,11 +43,11 @@ typedef union block {
   char wall;
   char bonus;
   Objective objective;
-  Enemy * enemy;
-  Player * player;
+  Enemy *enemy;
+  Player *player;
   Exit exit;
   Bomb bomb;
-  
+
 }Block;
 
 typedef struct Segment {

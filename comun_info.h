@@ -78,18 +78,11 @@ typedef struct PACKAGE_CLIENTE
   int PID;                    // PID do Cliente que manda o Pacote
   Action action;              // respetiva Acçao a tomar mediante o tipo de Pacote
 }Package_Cli;
+
 //##############################################################################
 //                              PACOTE DO SERVIDOR:
 //##############################################################################
 
-typedef struct PLAYER {
-  int PID;                //Para identificar o proprio jogador.
-  int posx,posy;          //Posicao do jogador
-  int score;              //Score do jogador
-  int bomb;               //Bombinhas
-  int megabomb;
-                          //TODO: int vidas ? se houve tempo
-}Player;
 //Mensagens de controlo do servidor
 enum cellType {
   cellType_FREE = 0,      //Pos Livre
@@ -105,21 +98,40 @@ enum cellType {
   cellType_LOGIN_RESPONSE,    // resposta de pedido de login
   cellType_SERVER_SHUTDOWN,   // resposta servidor vai encerrar
   cellType_LOGOUT_RESPONSE,   // resposta utilizador vai fazer shutdown
-  cellType_SERVER_KICK,       // reposta utilizado vai kickar 
+  cellType_SERVER_KICK,       // reposta utilizado vai kickar
   cellType_CHAT
 };
 
 typedef union INFO {
   int login_answer;
-  int exit;
   char msg[30];
-  Player player;
 }Info;
 
+typedef struct PLAYER {
+  int PID;                //Para identificar o proprio jogador.
+  int posx,posy;          //Posicao do jogador
+  int score;              //Score do jogador
+  int bomb;               //Bombinhas
+  int megabomb;
+  //int vidas;                //TODO: int vidas ? se houve tempo
+}Player;
+
+typedef struct map
+{
+  int type;
+
+  int exit;
+  Player player;
+}Map;
+
 typedef struct GAMEINFO {
-  int cellType;                 // troquei isto cellType cell;
-  Info info;
+  int type;
+
+  Map map[20][30];
+  int login_answer;
+  char msg[30];
   int time;
 } gameInfo;
+
 
 #endif /* COMUN_INFO_H */
