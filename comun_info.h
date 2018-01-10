@@ -1,6 +1,7 @@
 #ifndef COMUN_INFO_H
 #define COMUN_INFO_H
 
+
 #define MAX 50
 #define SERVER_PIPE "../Data/ServerPipe"
 #define CLIENT_PIPE_TEMPLATE "../Data/Client_%d"
@@ -27,107 +28,98 @@
 #define USER_ALREADY_IN         -4
 #define SERVER_FULL             -5
 
-//Mensagens de controlo do servidor
-#define SERVER_ANSWER_AUTH    20
-#define SERVER_KICK           21
-#define SERVER_AUTH           22
-#define SERVER_REQ_RESP       23
-#define SERVER_GAME_INFO      24
-#define SERVER_SHUTDOWN       25
-#define SERVER_ANSWER_LOGOUT  26
-
 //Representacao
 
 enum messageType {
-  LOGIN = 0,
-  LOGOUT,
-  COMMAND,
-  CHAT
-}
+  CLIENT_LOGIN = 0,
+  CLIENT_LOGOUT,
+  CLIENT_COMMAND,
+  CLIENT_CHAT
+};
 
-enum commandos {
-  UP = KEY_UP,
-  DOWN = KEY_DOWN,
-  RIGHT = KEY_RIGHT,
-  LEFT = KEY_LEFT,
-  SMALLBOMB = KEY_Z   //TODO REVER ISTO
-  BIGBOMB = KEY_X     //TODO REVER ISTO
-  JUMP = KEY_SPACE
-  QUIT = KEY_Q
-  CHAT = KEY_ENTER
-}
+enum  commands {
+  COMMAND_UP = KEY_UP,
+  COMMAND_DOWN = KEY_DOWN,
+  COMMAND_RIGHT = KEY_RIGHT,
+  COMMAND_LEFT = KEY_LEFT,
+  COMMAND_SMALLBOMB1 = 122,   //TODO REVER ISTO
+  COMMAND_SMALLBOMB2 = 90,
+  COMMAND_BIGBOMB1 = 120,
+  COMMAND_BIGBOMB2 = 88,     //TODO REVER ISTO
+  COMMAND_JUMP1 = 97,
+  COMMAND_JUMP2 = 65,
+  COMMAND_QUIT1 = 113,
+  COMMAND_QUIT2 = 81,
+  COMMAND_CHAT = KEY_ENTER
+};
 
-//PACOTE DO CLIENTE:
+//##############################################################################
+//                              PACOTE DO CLIENTE:
+//##############################################################################
+// estrutura para que o Cliente consiga fazer o login
 typedef struct USER_LOGIN_
 {
   char username[MAX];
   char password[MAX];
-  int try_login;
-  int login_answer;
+  int try_login;                // vezes que um cliente consegue tentar Logar no servidor;
+  int login_answer;             // Resposta que virá do servidor para fazer o Login;
 }Login;
 
 // Extrutura que representa o movimento do Bomberman a ser enviada para o servidor;
 typedef union ACTION
 {
   int key;
-  Login login_request;  // pedido de login por parte do jogador;
+  Login login_request;         // pedido de login por parte do jogador;
 }Action;
-
-typedef struct PACKAGE_CLI
+// Estrura Cabeçalho do Cliente
+typedef struct PACKAGE_CLIENTE
 {
-  int TYPE;
-  int PID;
-  Action action;
-}Package_cli;
+  int TYPE;                   // tipo de Pacote
+  int PID;                    // PID do Cliente que manda o Pacote
+  Action action;              // respetiva Acçao a tomar mediante o tipo de Pacote
+}Package_Cli;
+//##############################################################################
+//                              PACOTE DO SERVIDOR:
+//##############################################################################
 
-
-//PACOTE DO SERVIDO:
-typedef struct Bomb {
-  pthread_t bomb_id;
-  int posx,posy;     //Posição da bomba (ainda nao definida)
-  int explosionSize; //Tamanho explosao
-}Bomb;
-
-typedef struct enemy {
-    pthread_t enemy_ID;    //ID da thread do inimigo
-    int posx,posy;         //Posicao do inimigo
-    char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
-}Enemy;
-
-typedef struct player {
-  int PID;           //Para identificar o proprio jogador.
-  int posx,posy;     //Posicao do jogador
-  int score;         //Score do jogador
-  int bomb;          //Bombinhas
+typedef struct PLAYER {
+  int PID;                //Para identificar o proprio jogador.
+  int posx,posy;          //Posicao do jogador
+  int score;              //Score do jogador
+  int bomb;               //Bombinhas
   int megabomb;
-  //TODO: int vidas ? se houve tempo
+                          //TODO: int vidas ? se houve tempo
 }Player;
-
+//Mensagens de controlo do servidor
 enum cellType {
-  FREE = 0,   //Pos Livre
-  WALL,       //parede Destrutivel
-  IRON_WALL,  //Parede indestrutivel
-  ENEMY,
-  PLAYER,
-  BOMB,
-  MEGABOMB,
-  OBJECT,
-  BONUS,
-  EXIT,
-  LOGIN_RESPONSE,
-  CHAT
-}
+  cellType_FREE = 0,      //Pos Livre
+  cellType_WALL,          //parede Destrutivel
+  cellType_IRON_WALL,     //Parede indestrutivel
+  cellType_ENEMY,
+  cellType_PLAYER,
+  cellType_BOMB,
+  cellType_MEGABOMB,
+  cellType_OBJECT,
+  cellType_BONUS,
+  cellType_EXIT,
+  cellType_LOGIN_RESPONSE,    // resposta de pedido de login
+  cellType_SERVER_SHUTDOWN,   // resposta servidor vai encerrar
+  cellType_LOGOUT_RESPONSE,   // resposta utilizador vai fazer shutdown
+  cellType_SERVER_KICK,       // reposta utilizado vai kickar 
+  cellType_CHAT
+};
 
-typedef union info {
+typedef union INFO {
   int login_answer;
   int exit;
   char msg[30];
   Player player;
-
 }Info;
 
-typedef struct gameInfo {
-  cellType a;
+typedef struct GAMEINFO {
+  int cellType;                 // troquei isto cellType cell;
   Info info;
   int time;
-} gameInfo
+} gameInfo;
+
+#endif /* COMUN_INFO_H */

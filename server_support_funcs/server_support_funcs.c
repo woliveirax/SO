@@ -142,11 +142,11 @@ int checkIfUserOn(ClientsData * Data, char * user)
 
 int sendKickToClient(Client cli)
 {
-  Package kick_user;
+  gameInfo kick_user;
 
-  kick_user.TYPE = SERVER_KICK;
+  kick_user.cellType = cellType_SERVER_KICK;
 
-  if(write(cli.FD,&kick_user,sizeof(Package)) <= 0)
+  if(write(cli.FD,&kick_user,sizeof(gameInfo)) <= 0)
   {
     perror("Nao foi possivel enviar a mensagem de kick ao utilizador: ");
 
@@ -210,15 +210,13 @@ void sendfromserverShutdown(ClientsData * Data)
 {
     int i = 0;
 
-    Package Server_Shutdown;
+    gameInfo Server_Shutdown;
 
-    Server_Shutdown.TYPE = SERVER_SHUTDOWN;
-
-    Server_Shutdown.action.server_shutdown = USER_SHUTDOWN;
+    Server_Shutdown.cellType = cellType_SERVER_SHUTDOWN;
 
     while(i < Data->nClients)
     {
-      if(write(Data->clients[i].FD,&Server_Shutdown,sizeof(Package)) <= 0)
+      if(write(Data->clients[i].FD,&Server_Shutdown,sizeof(gameInfo)) <= 0)
       {
         printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador com o PID");
 

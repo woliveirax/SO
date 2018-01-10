@@ -15,12 +15,12 @@ printf ("\033c");
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GO_TO_USER_EXIT(Client_data *info)
 {
-  Package User_exit;
+  Package_Cli User_exit;
 
   User_exit.TYPE = USER_EXIT;
   User_exit.PID = getpid();
 
- if ( write (info->FD_SERVER_PIPE, &User_exit, sizeof(Package)) < 0)
+ if ( write (info->FD_SERVER_PIPE, &User_exit, sizeof(Package_Cli)) < 0)
  {
 
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
@@ -159,17 +159,6 @@ void check_options_login(Client_data *info)
     case SERVER_FULL:
       printf ("\nServer Full. Try again later ...\n");
       break;
-
-    case SERVER_KICK:
-      printf("\nYou've been kicked from the server.\n"); //TODO PODEMOS MANDAR UMA STRING COM A RAZÃO DE KICK.
-      unlink(info->CLIENT_PIPE);                         // TODO repensar no kick em vez de exit(0) apenas voltar ao menu login;
-      return;
-
-    case SERVER_SHUTDOWN:
-      printf("\nServer going off...\n");                // TODO  acho que falta aqui qualquer coisal
-      unlink(info->CLIENT_PIPE);
-      exit(0);
-
   }
   return;
 }
@@ -193,10 +182,9 @@ int OPEN_CLIENT_PIPE_READ (Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //ENVIAR MENSAGEM LOGIN PARA SERVIDOR
-int SEND_CLIENT_SERVER ( Client_data *info, Package *login )
+int SEND_CLIENT_SERVER ( Client_data *info, Package_Cli *login )
 {
-
-  if ( write(info->FD_SERVER_PIPE, login, sizeof(Package)) < 0 )
+  if ( write(info->FD_SERVER_PIPE, login, sizeof(Package_Cli)) < 0 )
   {
     return -1;
   }
@@ -206,17 +194,17 @@ int SEND_CLIENT_SERVER ( Client_data *info, Package *login )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //FUNÇAO QUE PEDE DADOS PARA FAZER LOGIN
-void CLIENT_LOGIN( Client_data *info)
+void CLIENT_LOGIN_( Client_data *info)
 {
 
   pthread_cond_init(&info->AWAITED_REPLY_LOGIN, NULL);
 
   pthread_mutex_init(&info->LOCK_LOGIN, NULL);
 
-  Package login;
+  Package_Cli login;
 
   login.TYPE = USER_AUTH;
-
+  login.PID =getpid();
   login.action.login_request.try_login = 0;
 
   do {
@@ -228,8 +216,6 @@ void CLIENT_LOGIN( Client_data *info)
   printf ("\nPassword:");
 
   scanf(" %49s", login.action.login_request.password);                //TODO alterar para getpass();
-
-  login.action.login_request.PID = getpid();
 
   if ( SEND_CLIENT_SERVER (info , &login ) < 0)
   {
@@ -275,7 +261,7 @@ while(1)
 
     switch (choice)
     {
-      case 1: CLIENT_LOGIN(info);
+      case 1: CLIENT_LOGIN_(info);
               break;
 
       case 2: CLIENT_EXIT(info);
@@ -328,7 +314,7 @@ void * receive_from_server( void * info)
 {
   Client_data * info_client = ( Client_data * ) info;
 
-  Package package;
+  gameInfo Package_Server;
 
   if ( OPEN_CLIENT_PIPE_READ(info_client) < 0 )
   {
@@ -337,24 +323,27 @@ void * receive_from_server( void * info)
   }
   while (1){
 
-    read( info_client->FD_CLIENT_PIPE, &package, sizeof(Package) );
+    read( info_client->FD_CLIENT_PIPE, &Package_Server, sizeof(gameInfo) );
 
-    switch ( package.TYPE )
+    switch ( Package_Server.cellType )
     {
-      case SERVER_ANSWER_AUTH:
-        info_client->LOGIN_CONFIRMATION = package.action.login_answer;
+      case cellType_LOGIN_RESPONSE:
+        info_client->LOGIN_CONFIRMATION = Package_Server.info.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
-      case SERVER_SHUTDOWN:
+      case cellType_SERVER_SHUTDOWN:
         printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
-      case SERVER_ANSWER_LOGOUT:
+      case cellType_LOGOUT_RESPONSE:
         printf ("\n\n Successful logout..!\n\n");
         CLIENT_EXIT(info);
         break;
-
-    }
+      case cellType_SERVER_KICK:
+        printf("\nYou've been kicked from the server.\n");
+        CLIENT_EXIT(info);
+        break;
+      }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ncurses.h>
 #include "../comun_info.h"
 #include "../server_support_funcs/server_support_funcs.h"
 #include "../server/server_structures.h"

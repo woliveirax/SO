@@ -68,7 +68,6 @@ int verifyPlayerCredentials(Login *login_request)
   return ret;
 }
 
-
 int openClientFD(Client * cli)
 {
   char path[100];
@@ -91,23 +90,21 @@ void addClientToArray(ClientsData * Data, Client cli)
 }
 
 
-void copyLoginToClient(Client * cli, Login *login)
+void copyLoginToClient(Client * cli, Login *login, int PID)
 {
   strcpy(cli->username,login->username);
-  cli->PID = login->PID;
+  cli->PID = PID;
   cli->player = NULL;
 
   openClientFD(cli);
 }
 
-int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD, Login *login_request)
+int verifyPlayerLoginRequest(ClientsData *Data,Client * cli,int serverFD, Login *login_request, int PID)
 {
-
-
   if(Data->nClients == 20)
     return SERVER_FULL;
 
-  copyLoginToClient(cli,login_request);
+  copyLoginToClient(cli,login_request, PID);
 
   if(verifyPlayerCredentials(login_request) == 0)
     if(verifyLoggedPlayers(Data, login_request) == 0)
@@ -127,23 +124,23 @@ void removeClientFromArray(ClientsData * Data, char * username)
     }
 }
 
-int authentication(ClientsData * Data,int serverFD, Login *login_request)
+int authentication(ClientsData * Data,int serverFD, Login *login_request, int PID)
 {
   int response;
   Client cli;
 
-  Package answer_login;
+  gameInfo answer_login;
 
-  response = verifyPlayerLoginRequest(Data,&cli,serverFD, login_request);
+  response = verifyPlayerLoginRequest(Data,&cli,serverFD, login_request, PID);
 
-  answer_login.TYPE = SERVER_ANSWER_AUTH;
-  answer_login.action.login_answer = response;
+  answer_login.cellType = cellType_LOGIN_RESPONSE;
+  answer_login.info.login_answer = response;
 
   if(response == USER_LOGIN_ACCEPTED)
   {
     addClientToArray(Data,cli);
 
-    if(write(cli.FD,&answer_login,sizeof(Package)) < 0)
+    if(write(cli.FD,&answer_login,sizeof(gameInfo)) < 0)
     {
       removeClientFromArray(Data,cli.username);
       return -1;
@@ -151,7 +148,7 @@ int authentication(ClientsData * Data,int serverFD, Login *login_request)
   }
   else
   {
-    if(write(cli.FD,&answer_login,sizeof(Package)) < 0)
+    if(write(cli.FD,&answer_login,sizeof(gameInfo)) < 0)
     {
       close(cli.FD);
       return -1;
@@ -170,10 +167,10 @@ void removeUserByPID(ClientsData * Data, int PID)
   for(int i = 0; i < Data->nClients; i++)
     if(Data->clients[i].PID == PID)
     {
-      Package SERVER_ANSWER_LOG;   // resposta ao servidor que vai sair do login
-      SERVER_ANSWER_LOG.TYPE = SERVER_ANSWER_LOGOUT;
+      gameInfo SERVER_ANSWER_LOG;   // resposta ao servidor que vai sair do login
+      SERVER_ANSWER_LOG.cellType = cellType_LOGOUT_RESPONSE;
 
-      write(Data->clients[i].FD, &SERVER_ANSWER_LOG, sizeof(Package));
+      write(Data->clients[i].FD, &SERVER_ANSWER_LOG, sizeof(gameInfo));
 
       Data->clients[i] = Data->clients[(Data->nClients)-1];
 
@@ -185,18 +182,18 @@ void readData(ClientsData * Data,int serverFD)
 {
   int type = 69;
 
-  Package package;
+  Package_Cli package_cli;
 
-  read(serverFD,&package,sizeof(Package));
+  read(serverFD,&package_cli,sizeof(Package_Cli));
 
-  switch(package.TYPE)
+  switch(package_cli.TYPE)
   {
     case USER_AUTH:
-      authentication(Data,serverFD, &package.action.login_request);
+      authentication(Data,serverFD, &package_cli.action.login_request, package_cli.PID);
       break;
 
     case USER_EXIT:
-        removeUserByPID(Data, package.PID);
+        removeUserByPID(Data, package_cli.PID);
       break;
 
     case USER_COM:
