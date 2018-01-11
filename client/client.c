@@ -50,7 +50,7 @@ void writeChatMessenger(Client_data *info){
   Package_Cli ChatMessage;
   ChatMessage.TYPE = USER_CHAT;
   ChatMessage.PID = getpid();
-
+  keypad(info->CHATWRITER, TRUE);
   for ( int i = 0; i < 30;i++){
     ChatMessage.action.msg[i] = getch();
     box(info->CHATWRITER, 0, 5);
@@ -75,7 +75,7 @@ int sendCommandToServer(int key, Client_data *info){
 void GAME_START(Client_data *info){
 
   int key = 0, i=0;
-
+keypad(info->INFOGAME, TRUE);
   while (getch() != 113){
     key = getch();
     box(info->INFOGAME, 0, 5);
