@@ -86,6 +86,7 @@ int openClientFD(Client * cli)
 void addClientToArray(ClientsData * Data, Client cli)
 {
   Data->clients[Data->nClients] = cli;
+  Data->clients[Data->nClients].inGame = 0;
   (Data->nClients)++;
 }
 
@@ -178,10 +179,56 @@ void removeUserByPID(ClientsData * Data, int PID)
     }
 }
 
+//################################################################################################
+//################################ Jogo
+//################################################################################################
+
+Client * getUserByPID(ClientsData * data, int cli_pid)
+{
+  for(int i = 0; i < data->nClients ; i++)
+    if(cli_pid == data->clients[i].PID)
+      return &data->clients[i];
+
+  return NULL;
+}
+
+void userEntersGame(ClientsData * data, int cli_pid)
+{
+  Client *cli = getUserByPID(data, cli_pid);
+  cli->inGame = 1;
+}
+
+void userLeavesGame(ClientsData * data, int cli_pid)
+{
+  Client *cli = getUserByPID(data, cli_pid);
+  cli->inGame = 0;
+}
+
+void sendMessageGlobal(ClientsData * data,Package_Cli cli)
+{
+  Client * client = getUserByPID(data,cli.PID);
+  char message[100];
+  sprintf(message,"%50s : %30s\n",client->username,cli.action.msg);
+
+  for(int i = 0; i < data->nClients ; i++)
+    if(write(data->clients[i].FD,&message,sizeof(char) * 100) == -1)
+    {
+      printf("Impossível enviar mensagem ao utilizador: %s",data->clients[i].username);
+    }
+}
+
+void userMovement(ClientsData * data, Package_Cli pkg)
+{
+  Client * cli = getUserByPID(data,pkg.PID);
+  char message[100];
+  sprintf(message,"O utilzador %s carregou na tecla %c",cli->username,pkg.action.key);
+  printf("%s\n",message);
+}
+
+
 void readData(ClientsData * Data,int serverFD)
 {
   int type = 69;
-
   Package_Cli package_cli;
 
   read(serverFD,&package_cli,sizeof(Package_Cli));
@@ -197,9 +244,19 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_PLAY:
+      userEntersGame(Data,package_cli.PID);
+      break;
+
+    case USER_QUIT:
+      userLeavesGame(Data,package_cli.PID);
+      break;
+
+    case USER_CHAT:
+      sendMessageGlobal(Data,package_cli);
       break;
 
     case USER_ACTION:
+      userMovement(Data,package_cli);
       break;
 
     default:
