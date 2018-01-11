@@ -210,6 +210,9 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
   char message[100];
   sprintf(message,"%50s : %30s\n",client->username,cli.action.msg);
 
+  sprintf(message,"-> %s: %s",client->username,cli.action.msg);
+  printf("%s\n",message);
+
   for(int i = 0; i < data->nClients ; i++)
     if(write(data->clients[i].FD,&message,sizeof(char) * 100) == -1)
     {
