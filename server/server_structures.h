@@ -5,23 +5,7 @@
 #define buf_size 1024
 #define MAX 50
 #define MAX_CLI 20
-/*
-typedef struct Bomb {
-  int nBombs;
-  int posx,posy;
-  int explosionSize; //Tamanho explosao
-}Bomb;
-*/
-/*
-typedef struct player {
-  int posx,posy;     //Posicao do jogador
-  int score;         //Score do jogador
-  Bomb nuke;         //bombas
-  Bomb grenade;      //Bombinhas
 
-  //int vidas NOTE: considerar ?
-}Player;
-*/
 typedef struct BOMB {
   pthread_t bomb_id;
   int posx,posy;          //Posição da bomba (ainda nao definida)
@@ -37,6 +21,7 @@ typedef struct ENEMY {
 typedef struct client {
   int PID;                    //PID do jogador
   int FD;                     //FD do pipe do jogador
+  int inGame;
   char username[MAX];         //Username do jogador
   Player *player;             //Ponteiro para o boneco do jogador
 

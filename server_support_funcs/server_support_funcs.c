@@ -8,7 +8,6 @@ void addUserToFile(char *user, char *pass)
   if((fd = fopen(users_file,"at")) == NULL)
   {
     perror("Erro: ");
-
   }
   else
   {
@@ -60,7 +59,7 @@ int addUser (int argc, char *argv[])
   if(argc != 3)
   {
     printf("Modo de uso: %s username password\n",argv[0]);
-    exit(1);
+    return 1;
   }
 
   if(verifyUserFile() == 0)
@@ -136,6 +135,7 @@ int checkIfUserOn(ClientsData * Data, char * user)
     if(strcmp(Data->clients[i].username, user) == 0)
       return i;
   }
+
   printf("O cliente \'%s\' não se encontra ligado.",user);
   return -1;
 }
@@ -144,7 +144,7 @@ int sendKickToClient(Client cli)
 {
   gameInfo kick_user;
 
-  kick_user.cellType = cellType_SERVER_KICK;
+  kick_user.type = SERVER_KICK;
 
   if(write(cli.FD,&kick_user,sizeof(gameInfo)) <= 0)
   {
@@ -212,7 +212,7 @@ void sendfromserverShutdown(ClientsData * Data)
 
     gameInfo Server_Shutdown;
 
-    Server_Shutdown.cellType = cellType_SERVER_SHUTDOWN;
+    Server_Shutdown.type = SERVER_SHUTDOWN;
 
     while(i < Data->nClients)
     {
@@ -235,9 +235,9 @@ void serverShutdown(int argc,char *argv[], ClientsData * Data)
   }
 
   sendfromserverShutdown(Data);
-
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
 
+  //TODO espera threads;
 
   exit(0);
   //TODO fechar pipes cliente;

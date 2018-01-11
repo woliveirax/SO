@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void cls()
 {
-printf ("\033c");
+  printf ("\033c");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que faz com que o utilizador faça logout
@@ -325,21 +325,21 @@ void * receive_from_server( void * info)
 
     read( info_client->FD_CLIENT_PIPE, &Package_Server, sizeof(gameInfo) );
 
-    switch ( Package_Server.cellType )
+    switch (Package_Server.type)
     {
-      case cellType_LOGIN_RESPONSE:
-        info_client->LOGIN_CONFIRMATION = Package_Server.info.login_answer;
+      case LOGIN_RESPONSE:
+        info_client->LOGIN_CONFIRMATION = Package_Server.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
-      case cellType_SERVER_SHUTDOWN:
+      case SERVER_SHUTDOWN:
         printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
-      case cellType_LOGOUT_RESPONSE:
+      case LOGOUT_RESPONSE:
         printf ("\n\n Successful logout..!\n\n");
         CLIENT_EXIT(info);
         break;
-      case cellType_SERVER_KICK:
+      case SERVER_KICK:
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
@@ -390,14 +390,25 @@ void Client_console()
 
   Client_options(&info_client);
 }
+
+void HandleSignal(int s){
+  if(s == SIGINT)
+  {
+    printf("Please, choose exit to leave!\n");
+    return;
+  }
+
+  return;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main ( int argc, char * argv[])
   {
+    signal(SIGINT,HandleSignal);
     setbuf(stdout, NULL);
 
     verify_server();
-
     Client_console();
 
     return 0;
