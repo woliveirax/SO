@@ -133,7 +133,7 @@ typedef struct GAMEINFO {
 
   Map map[20][30];
   int login_answer;
-  char msg[30];
+  char msg[100];
   int time;
 } gameInfo;
 
