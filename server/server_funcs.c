@@ -196,7 +196,7 @@ void readData(ClientsData * Data,int serverFD)
       removeUserByPID(Data, package_cli.PID);
       break;
 
-    case USER_COM:
+    case USER_PLAY:
       break;
 
     case USER_ACTION:

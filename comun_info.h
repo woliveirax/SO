@@ -19,7 +19,9 @@ enum MessageType {
   USER_ACTION,          //Movement
   USER_EXIT,            //User Logout
   USER_SHUTDOWN,        //Client exit Terminal
-  USER_REQUEST_LOGOUT   // pedido de logout pelo utilizador
+  USER_REQUEST_LOGOUT,  //pedido de logout pelo utilizador
+  USER_CHAT,            //Mensagem de chat
+  USER_PLAY             //Mensagem de inicio de jogo
 };
 
 //Resposta DA MENSAGEM USER_AUTH
@@ -36,7 +38,8 @@ enum messageType {
   CLIENT_LOGIN = 0,
   CLIENT_LOGOUT,
   CLIENT_COMMAND,
-  CLIENT_CHAT
+  CLIENT_CHAT,
+  CLIENT_PLAY
 };
 
 enum  commands {
