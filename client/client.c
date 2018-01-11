@@ -2,6 +2,7 @@
 #include "../comun_info.h"
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que limpa o ecran;
@@ -44,6 +45,70 @@ void VIEW_TOP_10(Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void writeChatMessenger(Client_data *info){
+
+  Package_Cli ChatMessage;
+  ChatMessage.TYPE = USER_CHAT;
+  ChatMessage.PID = getpid();
+
+  for ( int i = 0; i < 30;i++){
+    ChatMessage.action.msg[i] = getch();
+    box(info->CHATWRITER, 0, 5);
+    wrefresh(info->CHATWRITER);
+  }
+    write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int sendCommandToServer(int key, Client_data *info){
+
+  Package_Cli SendComand;
+
+  SendComand.TYPE = USER_ACTION;
+  SendComand.PID = getpid();
+
+  if (write(info->FD_SERVER_PIPE, &SendComand, sizeof(Package_Cli))< 0)
+    return -1;
+    else
+    return 0;
+}
+
+void GAME_START(Client_data *info){
+
+  int key = 0, i=0;
+
+  while (getch() != 113){
+    key = getch();
+    box(info->INFOGAME, 0, 5);
+    wrefresh(info->INFOGAME);
+    switch ( key ) {
+      case COMMAND_UP:
+        sendCommandToServer(key, info);
+        break;
+      case COMMAND_DOWN:
+        sendCommandToServer(key, info);
+        break;
+      case COMMAND_RIGHT:
+        sendCommandToServer(key, info);
+        break;
+      case COMMAND_LEFT:
+        sendCommandToServer(key, info);
+        break;
+      case  COMMAND_CHAT:
+        writeChatMessenger(info);
+        break;
+    }
+    i++;
+  }
+  Package_Cli User_exit;
+
+  User_exit.TYPE = USER_QUIT;
+  User_exit.PID =getpid();
+
+  write(info->FD_SERVER_PIPE, &User_exit, sizeof(Package_Cli));
+  return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CREATE_SPACE_GAME(Client_data *info)
 {
 
@@ -57,19 +122,23 @@ void CREATE_SPACE_GAME(Client_data *info)
   info->INFOGAME = newwin(20,25,4,0);
   info->MAPVIEWER = newwin( 20, 30,4,25);
   info->TIMEGAMEVIEWER = newwin (4,25,4,55);
-  info->HISTORYGAMEKEY = newwin(16,25,8,55);
+  info->CHATVIWER = newwin(16,25,8,55);
+  info->CHATWRITER = newwin(16,25,8,55);
   // pintar janela
   wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
   wbkgd(info->LOGOGAME, COLOR_PAIR(1));
   wbkgd(info->INFOGAME, COLOR_PAIR(1));
   wbkgd(info->TIMEGAMEVIEWER, COLOR_PAIR(1));
-  wbkgd(info->HISTORYGAMEKEY, COLOR_PAIR(1));
+  wbkgd(info->CHATVIWER, COLOR_PAIR(1));
+  wbkgd(info->CHATWRITER, COLOR_PAIR(1));
+
   //fazer casquilho
   box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
   box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
   box(info->INFOGAME, ACS_VLINE,ACS_HLINE);
   box(info->TIMEGAMEVIEWER, ACS_VLINE,ACS_HLINE);
-  box(info->HISTORYGAMEKEY, ACS_VLINE,ACS_HLINE);
+  box(info->CHATVIWER, ACS_VLINE,ACS_HLINE);
+  box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
 
 /*  for ( int i = 0 ; i < 20 ; i++){
     for ( int j = 0; j < 30 ; j++){
@@ -82,22 +151,49 @@ void CREATE_SPACE_GAME(Client_data *info)
   wgetch(info->LOGOGAME);
   wgetch(info->INFOGAME);
   wgetch(info->TIMEGAMEVIEWER);
-  wgetch(info->HISTORYGAMEKEY);
+  wgetch(info->CHATVIWER);
+  wgetch(info->CHATWRITER);
   // deve-se fazer o refresh se quiser mostrar alteraçoes
   wrefresh(info->MAPVIEWER);
   wrefresh(info->LOGOGAME);
   wrefresh(info->INFOGAME);
   wrefresh(info->TIMEGAMEVIEWER);
-  wrefresh(info->HISTORYGAMEKEY);
+  wrefresh(info->CHATVIWER);
+  wrefresh(info->CHATWRITER);
 
-  // aqui fecha janela
-  delwin(info->MAPVIEWER);
+
+  /*delwin(info->MAPVIEWER);
   delwin(info->LOGOGAME);
   delwin(info->INFOGAME);
   delwin(info->TIMEGAMEVIEWER);
   delwin(info->HISTORYGAMEKEY);
   endwin();
+  */
+  GAME_START(info);
+  // aqui fecha janela
+  delwin(info->MAPVIEWER);
+  delwin(info->LOGOGAME);
+  delwin(info->INFOGAME);
+  delwin(info->TIMEGAMEVIEWER);
+  delwin(info->CHATVIWER);
+  delwin(info->CHATWRITER);
+  endwin();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Envia Mensagem para Servidor a informar que vai começar a jogar
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SEND_USER_START_GAME(Client_data *info)
+{
+  Package_Cli User_start_game;
 
+  User_start_game.TYPE = USER_PLAY;
+  User_start_game.PID = getpid();
+
+  if ( write (info->FD_SERVER_PIPE, &User_start_game, sizeof(Package_Cli) ) < 0)
+  {
+    printf (" \nError to sendo messagem USER_PLAY for Server\n");
+    return;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

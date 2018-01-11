@@ -32,7 +32,8 @@ typedef struct Client_Data
   WINDOW *TIMEGAMEVIEWER;             // janela para ver o tempo de jogo
   WINDOW *LOGOGAME;                   // janela onde estará o nome do jogo
   WINDOW *INFOGAME;                   // janela para ver informaçao relativa ao jogo
-  WINDOW *HISTORYGAMEKEY;             // janela para ver informaçao digitada pelo utilizador;
+  WINDOW *CHATVIWER;                  // janela para ver informaçao digitada pelo utilizador;
+  WINDOW *CHATWRITER;                 // Janela para enviar mensagem para CHAT pelo utilizador;                 
 
 }Client_data;
 
