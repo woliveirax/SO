@@ -208,7 +208,7 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
 {
   Client * client = getUserByPID(data,cli.PID);
   char message[100];
-  sprintf(message,"%50s : %30s\n",client->username,cli.action.msg);
+  sprintf(message,"%50s: %30s\n",client->username,cli.action.msg);
 
   sprintf(message,"-> %s: %s",client->username,cli.action.msg);
   printf("%s\n",message);
@@ -220,6 +220,24 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
     }
 }
 
+void validaMovimentos(Player * player, int mov)
+{
+  switch(mov)
+  {
+    case KEY_UP:
+    break;
+
+    case KEY_DOWN:
+    break;
+
+    case KEY_LEFT:
+    break;
+
+    case KEY_RIGHT:
+    break;
+  }
+}
+
 void userMovement(ClientsData * data, Package_Cli pkg)
 {
   Client * cli = getUserByPID(data,pkg.PID);
@@ -227,7 +245,6 @@ void userMovement(ClientsData * data, Package_Cli pkg)
   sprintf(message,"O utilzador %s carregou na tecla %c",cli->username,pkg.action.key);
   printf("%s\n",message);
 }
-
 
 void readData(ClientsData * Data,int serverFD)
 {
@@ -432,7 +449,8 @@ void HandleSignal(int s)
 
 void console(ClientsData * Data)
 {
-  Global_Data = Data;
+  global_map = malloc(sizeof(gameInfo));
+
   //create_environment_variables();
   char buffer[buffer_size];
   signal(SIGINT,HandleSignal);

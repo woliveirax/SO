@@ -48,15 +48,20 @@ void VIEW_TOP_10(Client_data *info)
 void writeChatMessenger(Client_data *info){
 
   Package_Cli ChatMessage;
+
   ChatMessage.TYPE = USER_CHAT;
   ChatMessage.PID = getpid();
   keypad(info->CHATWRITER, TRUE);
-  for ( int i = 0; i < 30;i++){
-    ChatMessage.action.msg[i] = getch();
+  echo();
+
+    wscanw(info->CHATWRITER,"%29[^\n]",ChatMessage.action.msg);
     box(info->CHATWRITER, 0, 5);
     wrefresh(info->CHATWRITER);
-  }
+
     write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
+    noecho();
+    //wclear(info->CHATWRITER);
+    memset(&ChatMessage.action.msg,' ',100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int sendCommandToServer(int key, Client_data *info){
@@ -65,8 +70,9 @@ int sendCommandToServer(int key, Client_data *info){
 
   SendComand.TYPE = USER_ACTION;
   SendComand.PID = getpid();
+  SendComand.action.key = key;
 
-  if (write(info->FD_SERVER_PIPE, &SendComand, sizeof(Package_Cli))< 0)
+  if ((write(info->FD_SERVER_PIPE, &SendComand, sizeof(Package_Cli))) < 0)
     return -1;
     else
     return 0;
@@ -75,29 +81,27 @@ int sendCommandToServer(int key, Client_data *info){
 void GAME_START(Client_data *info){
 
   int key = 0, i=0;
-keypad(info->INFOGAME, TRUE);
-  while (getch() != 113){
-    key = getch();
-    box(info->INFOGAME, 0, 5);
-    wrefresh(info->INFOGAME);
-    switch ( key ) {
-      case COMMAND_UP:
+  keypad(info->MAPVIEWER, TRUE);
+  while ((key = tolower(wgetch(info->MAPVIEWER))) != 113){
+    //sendCommandToServer(key,info);
+
+    switch (key) {
+      case KEY_UP:
         sendCommandToServer(key, info);
         break;
-      case COMMAND_DOWN:
+      case KEY_DOWN:
         sendCommandToServer(key, info);
         break;
-      case COMMAND_RIGHT:
+      case KEY_RIGHT:
         sendCommandToServer(key, info);
         break;
-      case COMMAND_LEFT:
+      case KEY_LEFT:
         sendCommandToServer(key, info);
         break;
-      case  COMMAND_CHAT:
+      case  '\n':
         writeChatMessenger(info);
         break;
     }
-    i++;
   }
   Package_Cli User_exit;
 
@@ -109,35 +113,38 @@ keypad(info->INFOGAME, TRUE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void CREATE_SPACE_GAME(Client_data *info)
 {
 
   initscr(); // inicia a janela de ncurses
+  noecho();
   refresh(); // atualiza
   start_color(); // inicia cores
+
   init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
 //       altura Comprimento posicao y posicao
 
-  info->LOGOGAME = newwin(4,80,0,0);
-  info->INFOGAME = newwin(20,25,4,0);
+  //info->LOGOGAME = newwin(4,80,0,0);
+  //info->INFOGAME = newwin(20,25,4,0);
   info->MAPVIEWER = newwin( 20, 30,4,25);
-  info->TIMEGAMEVIEWER = newwin (4,25,4,55);
-  info->CHATVIWER = newwin(16,25,8,55);
+  //info->TIMEGAMEVIEWER = newwin (4,25,4,55);
+  //info->CHATVIWER = newwin(16,25,8,55);
   info->CHATWRITER = newwin(16,25,8,55);
   // pintar janela
-  wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
-  wbkgd(info->LOGOGAME, COLOR_PAIR(1));
+  //wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
+  //wbkgd(info->LOGOGAME, COLOR_PAIR(1));
   wbkgd(info->INFOGAME, COLOR_PAIR(1));
-  wbkgd(info->TIMEGAMEVIEWER, COLOR_PAIR(1));
-  wbkgd(info->CHATVIWER, COLOR_PAIR(1));
-  wbkgd(info->CHATWRITER, COLOR_PAIR(1));
+  //wbkgd(info->TIMEGAMEVIEWER, COLOR_PAIR(1));
+  //wbkgd(info->CHATVIEWER, COLOR_PAIR(1));
+  //wbkgd(info->CHATWRITER, COLOR_PAIR(1));
 
   //fazer casquilho
   box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
-  box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
-  box(info->INFOGAME, ACS_VLINE,ACS_HLINE);
-  box(info->TIMEGAMEVIEWER, ACS_VLINE,ACS_HLINE);
-  box(info->CHATVIWER, ACS_VLINE,ACS_HLINE);
+  //box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
+  //box(info->INFOGAME, ACS_VLINE,ACS_HLINE);
+  //box(info->TIMEGAMEVIEWER, ACS_VLINE,ACS_HLINE);
+  //box(info->CHATVIWER, ACS_VLINE,ACS_HLINE);
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
 
 /*  for ( int i = 0 ; i < 20 ; i++){
@@ -145,22 +152,21 @@ void CREATE_SPACE_GAME(Client_data *info)
       mvwprintw(teste, i, j, "b");
     }
   }
-  */
+
   //box(teste, ACS_VLINE, ACS_HLINE);
-  wgetch(info->MAPVIEWER);
-  wgetch(info->LOGOGAME);
-  wgetch(info->INFOGAME);
-  wgetch(info->TIMEGAMEVIEWER);
-  wgetch(info->CHATVIWER);
-  wgetch(info->CHATWRITER);
+  //wgetch(info->MAPVIEWER);
+  //wgetch(info->LOGOGAME);
+  //wgetch(info->INFOGAME);
+  //wgetch(info->TIMEGAMEVIEWER);
+  //wgetch(info->CHATVIWER);
+  //wgetch(info->CHATWRITER);
   // deve-se fazer o refresh se quiser mostrar alteraçoes
   wrefresh(info->MAPVIEWER);
-  wrefresh(info->LOGOGAME);
-  wrefresh(info->INFOGAME);
-  wrefresh(info->TIMEGAMEVIEWER);
-  wrefresh(info->CHATVIWER);
+  //wrefresh(info->LOGOGAME);
+  //wrefresh(info->INFOGAME);
+  //wrefresh(info->TIMEGAMEVIEWER);
+  //wrefresh(info->CHATVIWER);
   wrefresh(info->CHATWRITER);
-
 
   /*delwin(info->MAPVIEWER);
   delwin(info->LOGOGAME);
@@ -168,14 +174,48 @@ void CREATE_SPACE_GAME(Client_data *info)
   delwin(info->TIMEGAMEVIEWER);
   delwin(info->HISTORYGAMEKEY);
   endwin();
-  */
+
+  GAME_START(info);
+  wrefresh(info->MAPVIEWER);
+  // aqui fecha janela
+  delwin(info->MAPVIEWER);
+  //delwin(info->LOGOGAME);
+  //delwin(info->INFOGAME);
+  //delwin(info->TIMEGAMEVIEWER);
+  //delwin(info->CHATVIWER);
+  delwin(info->CHATWRITER);
+  endwin();
+}*/
+
+void CREATE_SPACE_GAME(Client_data *info)
+{
+
+  initscr(); // inicia a janela de ncurses
+  noecho();
+  refresh(); // atualiza
+  start_color(); // inicia cores
+
+  init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
+
+  //altura Comprimento posicao y posicao
+  info->MAPVIEWER = newwin( 20, 30,4,25);
+  info->CHATWRITER = newwin(16,25,8,55);
+
+  // pintar janela
+  wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
+  wbkgd(info->CHATWRITER, COLOR_PAIR(1));
+
+  //fazer casquilho
+  box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
+  box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
+
+  // deve-se fazer o refresh se quiser mostrar alteraçoes
+  wrefresh(info->MAPVIEWER);
+  wrefresh(info->CHATWRITER);
+
   GAME_START(info);
   // aqui fecha janela
   delwin(info->MAPVIEWER);
-  delwin(info->LOGOGAME);
-  delwin(info->INFOGAME);
-  delwin(info->TIMEGAMEVIEWER);
-  delwin(info->CHATVIWER);
   delwin(info->CHATWRITER);
   endwin();
 }
