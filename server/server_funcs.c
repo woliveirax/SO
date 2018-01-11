@@ -133,7 +133,7 @@ int authentication(ClientsData * Data,int serverFD, Login *login_request, int PI
 
   response = verifyPlayerLoginRequest(Data,&cli,serverFD, login_request, PID);
 
-  answer_login.type = cellType_LOGIN_RESPONSE;
+  answer_login.type = LOGIN_RESPONSE;
   answer_login.login_answer = response;
 
   if(response == USER_LOGIN_ACCEPTED)
@@ -168,7 +168,7 @@ void removeUserByPID(ClientsData * Data, int PID)
     if(Data->clients[i].PID == PID)
     {
       gameInfo SERVER_ANSWER_LOG;   // resposta ao servidor que vai sair do login
-      SERVER_ANSWER_LOG.type = cellType_LOGOUT_RESPONSE;
+      SERVER_ANSWER_LOG.type = LOGOUT_RESPONSE;
 
       write(Data->clients[i].FD, &SERVER_ANSWER_LOG, sizeof(gameInfo));
 
@@ -193,7 +193,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_EXIT:
-        removeUserByPID(Data, package_cli.PID);
+      removeUserByPID(Data, package_cli.PID);
       break;
 
     case USER_COM:
