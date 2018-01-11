@@ -20,8 +20,8 @@
 #define MAX 50
 #define buffer_size 300
 
+gameInfo * global_map;
 
-ClientsData * Global_Data; //TODO verifica isto.
 //Pipe Functions
 void * pipeMain(void * rcvData);
 
