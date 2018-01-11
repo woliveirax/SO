@@ -66,8 +66,10 @@ typedef struct USER_LOGIN_
 typedef union ACTION
 {
   int key;
+  char msg[30];
   Login login_request;         // pedido de login por parte do jogador;
 }Action;
+
 // Estrura Cabeçalho do Cliente
 typedef struct PACKAGE_CLIENTE
 {
