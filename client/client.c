@@ -327,19 +327,19 @@ void * receive_from_server( void * info)
 
     switch (Package_Server.type)
     {
-      case cellType_LOGIN_RESPONSE:
+      case LOGIN_RESPONSE:
         info_client->LOGIN_CONFIRMATION = Package_Server.login_answer;
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
-      case cellType_SERVER_SHUTDOWN:
+      case SERVER_SHUTDOWN:
         printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
         CLIENT_EXIT(info);
         break;
-      case cellType_LOGOUT_RESPONSE:
+      case LOGOUT_RESPONSE:
         printf ("\n\n Successful logout..!\n\n");
         CLIENT_EXIT(info);
         break;
-      case cellType_SERVER_KICK:
+      case SERVER_KICK:
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
