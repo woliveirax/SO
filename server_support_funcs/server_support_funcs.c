@@ -226,16 +226,11 @@ void sendfromserverShutdown(ClientsData * Data)
     }
     return;
   }
-void serverShutdown(int argc,char *argv[], ClientsData * Data)
+void serverShutdown()
 {
-  if(argc != 1)
-  {
-    fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
-    return;
-  }
-
-  sendfromserverShutdown(Data);
+  sendfromserverShutdown(global_clients);
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
+  free(global_map);
 
   //TODO espera threads;
 

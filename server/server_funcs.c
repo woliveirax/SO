@@ -207,14 +207,13 @@ void userLeavesGame(ClientsData * data, int cli_pid)
 void sendMessageGlobal(ClientsData * data,Package_Cli cli)
 {
   Client * client = getUserByPID(data,cli.PID);
-  char message[100];
-  sprintf(message,"%50s: %30s\n",client->username,cli.action.msg);
 
-  sprintf(message,"-> %s: %s",client->username,cli.action.msg);
-  printf("%s\n",message);
+  global_map->type = USER_CHAT;
+  sprintf(global_map->msg,"%50s: %30s\n",client->username,cli.action.msg);
+  //printf("%s\n",global_map->msg);
 
   for(int i = 0; i < data->nClients ; i++)
-    if(write(data->clients[i].FD,&message,sizeof(char) * 100) == -1)
+    if(write(data->clients[i].FD,&global_map,sizeof(gameInfo)) == -1)
     {
       printf("Impossível enviar mensagem ao utilizador: %s",data->clients[i].username);
     }
@@ -392,7 +391,10 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if(strcmp(command,"shutdown") == 0)
   {
-    serverShutdown(argc,arguments,Data);
+    if(argc > 1)
+      fprintf(stderr,"\nmodo de uso: %s\n",arguments[0]);
+    else
+      serverShutdown();
   }
   else if(strcmp(command,"map") == 0)
   {
@@ -424,36 +426,12 @@ void invalidCommand(char * command)
   fprintf(stderr,"O comando:\' %s \' nao existe. utilize help para ajuda!",command);
 }
 
-void HandleSignal(int s)
-{
-  if(s == SIGINT) //FAZ ROTINA DE SHUTDOWN
-  {
-    unlink(SERVER_PIPE); //TODO TRATAR SIGINT E SIGUSR 1 PARA SHUTDOWN
-    exit(0);
-  }
-
-  /*
-  if(s == SIGUSR1)
-  {
-    serverShutdown(1,s,Global_Data);
-    unlink(SERVER_PIPE);
-    exit(0);
-  }
-  */
-}
-
-//IGNORE SIGNALS: TODO
-//sigset_t mask;
-//sigfillset(&mask);
-//sigprocmask(SIG_SETMASK, &mask, NULL);
-
 void console(ClientsData * Data)
 {
   global_map = malloc(sizeof(gameInfo));
 
   //create_environment_variables();
   char buffer[buffer_size];
-  signal(SIGINT,HandleSignal);
 
   //TODO trata sinais
   setbuf(stdout,NULL);

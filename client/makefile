@@ -4,6 +4,9 @@ client:
 clean:
 		rm client
 
+pipe:
+	rm ../Data/pipes/Client_*
+
 debug:
 	gcc client.c client.h -g -o client -lpthread -lncurses
 	gdb ./client

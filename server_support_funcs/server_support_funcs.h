@@ -13,10 +13,13 @@
 #include "../server_support_funcs/server_support_funcs.h"
 #include "../server/server_structures.h"
 
+ClientsData * global_clients;
+gameInfo * global_map;
+
 int help(int argc, char *argv[]);
 int addUser (int argc, char *argv[]);
 void showCurrentUsers(int argc, char * argv[], ClientsData Data);
-void serverShutdown(int argc, char * argv[], ClientsData * Data);
+void serverShutdown();
 int kickUser(int argc, char * argv[],ClientsData * Data);
 void clearScreen();
 
