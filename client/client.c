@@ -1,5 +1,6 @@
 #include "client.h"
 #include "../comun_info.h"
+#include <curses.h>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que limpa o ecran;
@@ -47,14 +48,17 @@ void VIEW_TOP_10(Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void atualizaMapViewer(Client_data *info, gameInfo *Package){
-  echo();
-  for ( int y = 1 ; y < 21; y++ ){
+  wmove(info->MAPVIEWER, 1, 1);
+  wrefresh(info->MAPVIEWER);
+  for ( int y = 0 ; y < 21; y++ ){
     for ( int x = 0; x < 31; x++ ){
-        mvprintw(y,x,"%c", Package->map[y][x] );
+    //  waddstr(info->MAPVIEWER, Package->map[y][x].type);
+        //mvwprintw(info->MAPVIEWER, y, x, "%c", Package->map[y][x].type);
+        printf ("%c", Package->map[y][x].type );
+        mvwprintw(info->MAPVIEWER, y+1, x+1, "%c", 'c');
+        wrefresh(info->MAPVIEWER);
     }
   }
-  wrefresh(info->MAPVIEWER);
-  noecho();
 }
 void atualizaChatViwer(Client_data *info, char *msg){
   curs_set(0);
