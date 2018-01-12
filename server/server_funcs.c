@@ -240,48 +240,60 @@ void sendMapToClients(ClientsData * data)
         printf("Erro ao mandar mapa ao cliente %s...\n",data->clients[i].username);
 }
 
-Map * getFreeMapPos()
+void getFreeMapPos(Client * cli)
 {
   srand(time(0));
-  Map * temp;
-
-  do
-  {
-    temp = &global_map->map[rand()%20][rand()%30];
-  }while(temp->type != FREE);
-
-  return temp;
-}
-
-void insertUserIntoMap(ClientsData * data, int PID)
-{
-  Client * cli = getUserByPID(data,PID);
-  Map * myPos = getFreeMapPos();
+  Map * map;
 
   pthread_mutex_lock(&map_token);
-  myPos->type = PLAYER;
+  do
+  {
+    map = &global_map->map[rand()%20][rand()%30];
+  }while(map->type != FREE);
+
+  cli->player = &map->player;
+  map->player.PID = cli->PID;
+  map->player.orientation = KEY_UP;
+
   pthread_mutex_unlock(&map_token);
-  myPos->player.PID = PID;
-  myPos->player.score = 0;
-  myPos->player.bomb = 2;
-  myPos->player.megabomb = 1;
-  myPos->player.orientation = KEY_UP;
 }
 
-void validaMovimentos(Player * player, int mov)
+void moveToPos(Client * cli,Map * orig, Map * dest)
 {
+  pthread_mutex_lock(&map_token);
+  orig->type = FREE;
+  dest->type = PLAYER;
+  cli->player = &dest->player;
+  pthread_mutex_unlock(&map_token);
+}
+
+void validaMovimentos(Client * cli, int mov)
+{
+  int x = cli->player->posx, y = cli->player->posy;
+  printf("X: %d Y: %d\n",x,y);
+
   switch(mov)
   {
     case KEY_UP:
+      if(global_map->map[x][y-1].type == FREE)
+        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-1]);
+
     break;
 
     case KEY_DOWN:
+      if(global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type == ENEMY)
+        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+1]);
     break;
 
     case KEY_LEFT:
+      if(global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type == ENEMY)
+        moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y]);
+
     break;
 
     case KEY_RIGHT:
+    if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type == ENEMY)
+      moveToPos(cli,&global_map->map[x+1][y],&global_map->map[x+1][y]);
     break;
   }
 }
@@ -289,28 +301,19 @@ void validaMovimentos(Player * player, int mov)
 void userMovement(ClientsData * data, Package_Cli pkg)
 {
   Client * cli = getUserByPID(data,pkg.PID);
-  char message[100];
-  sprintf(message,"O utilzador %s carregou na tecla %c",cli->username,pkg.action.key);
-  printf("%s\n",message);
 
-
-  //validaMovimentos(Player *player, int mov);
+  validaMovimentos(cli,pkg.action.key);
 
   sendMapToClients(data);
-  for(int x = 0; x < 21;x++)
-  {
-    printf("\n");
-    for(int y = 0; y < 31; y++)
-      printf("%c",global_map->map[x][y].type);
-  }
 }
 
 void readData(ClientsData * Data,int serverFD)
 {
-  int type = 69;
+  Client * client;
   Package_Cli package_cli;
 
   read(serverFD,&package_cli,sizeof(Package_Cli));
+  client = getUserByPID(Data,package_cli.PID);
 
   switch(package_cli.TYPE)
   {
@@ -329,7 +332,7 @@ void readData(ClientsData * Data,int serverFD)
         game = true;
       }
       userEntersGame(Data,package_cli.PID);
-      insertUserIntoMap(Data,package_cli.PID);
+      getFreeMapPos(client);
       break;
 
     case USER_QUIT:

@@ -26,6 +26,14 @@ gameInfo * initMapPackage()
     exit(0);
   }
   memset(temp,0,sizeof(gameInfo));
+
+  for(int x = 0; x < 21 ; x++)
+    for(int y = 0; y < 31; y++)
+    {
+      temp->map[x][y].player.posx = x;
+      temp->map[x][y].player.posy = y;
+    }
+
   game = false;
   return temp;
 }
