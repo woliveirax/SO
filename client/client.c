@@ -45,13 +45,25 @@ void VIEW_TOP_10(Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO
 void atualizaChatViwer(Client_data *info, char *msg){
-  initscr();
+  int i = 0;
   echo();
-  wmove(info->CHATVIWER, 1, 1);
-  wrefresh(info->CHATVIWER);
-  wscrl(info->CHATVIWER, TRUE);
-	printw(msg);
+  if ( i = 0){
+    wmove(info->CHATVIEWER, 1, 1);
+    i = 1;
+  }
+
+  wrefresh(info->CHATVIEWER);
+  wscrl(info->CHATVIEWER, TRUE);
+
+
+	//winstr(info->CHATVIEWER, msg);
+  char str[200] ="Ola mundo";
+
+  wprintw(info->CHATVIEWER, str);
+  //waddstr(info->CHATVIEWER, msg);
+  wrefresh(info->CHATVIEWER);
 
 }
 
@@ -66,18 +78,16 @@ void writeChatMessenger(Client_data *info){
   echo();
   wmove(info->CHATWRITER, 1, 1);
   wrefresh(info->CHATWRITER);
-  wscrl(info->CHATWRITER, TRUE);
   //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
   wgetnstr(info->CHATWRITER,ChatMessage.action.msg, 22);
   //box(info->CHATWRITER, 1, );
   wclear(info->CHATWRITER);
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
-
   wrefresh(info->CHATWRITER);
   write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
 
   //Limpa Bufer da mensagem;
-  memset(&ChatMessage.action.msg,' ',100);
+  memset(&ChatMessage.action.msg,0,100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int sendCommandToServer(int key, Client_data *info){
@@ -217,29 +227,29 @@ void CREATE_SPACE_GAME(Client_data *info)
 
   //altura Comprimento posicao y posicao
   info->MAPVIEWER = newwin( 20, 30,4,25);
-  info->CHATVIWER = newwin(17,25,4,55);
+  info->CHATVIEWER = newwin(17,25,4,55);
   info->CHATWRITER = newwin(3,25,21,55);
 
   // pintar janela
   wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
-  wbkgd(info->CHATVIWER, COLOR_PAIR(1));
+  wbkgd(info->CHATVIEWER, COLOR_PAIR(1));
   wbkgd(info->CHATWRITER, COLOR_PAIR(1));
 
   //fazer casquilho
   box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
-  box(info->CHATVIWER, ACS_VLINE, ACS_HLINE);
+  box(info->CHATVIEWER, ACS_VLINE, ACS_HLINE);
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
 
   // deve-se fazer o refresh se quiser mostrar alteraçoes
   wrefresh(info->MAPVIEWER);
-  wrefresh(info->CHATVIWER);
+  wrefresh(info->CHATVIEWER);
   wrefresh(info->CHATWRITER);
 
 
   GAME_START(info);
   // aqui fecha janela
   delwin(info->MAPVIEWER);
-  delwin(info->CHATVIWER);
+  delwin(info->CHATVIEWER);
   delwin(info->CHATWRITER);
   endwin();
 }
@@ -504,8 +514,8 @@ void * receive_from_server( void * info)
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
-      case CHAT:
-        atualizaChatViwer(info,Package_Server.msg);
+      case USER_CHAT:   //TODO alterar para CHAT
+        atualizaChatViwer(info, Package_Server.msg);
         break;
       case MAP:
       printf ("\nAvailable in a few moments...\n");
