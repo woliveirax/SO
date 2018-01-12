@@ -213,7 +213,7 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
   //printf("%s\n",global_map->msg);
 
   for(int i = 0; i < data->nClients ; i++)
-    if(write(data->clients[i].FD,&global_map,sizeof(gameInfo)) == -1)
+    if(write(data->clients[i].FD,global_map,sizeof(gameInfo)) == -1)
     {
       printf("Impossível enviar mensagem ao utilizador: %s",data->clients[i].username);
     }
