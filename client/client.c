@@ -44,7 +44,8 @@ void VIEW_TOP_10(Client_data *info)
   printf ("Available in a few days");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// BACKUP WRITE CHAT MESSAGE
+/*
 void writeChatMessenger(Client_data *info){
 
   Package_Cli ChatMessage;
@@ -53,15 +54,39 @@ void writeChatMessenger(Client_data *info){
   ChatMessage.PID = getpid();
   keypad(info->CHATWRITER, TRUE);
   echo();
+  //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
+  wscanw(info->CHATWRITER,"%29[^\n]",ChatMessage.action.msg);
+  box(info->CHATWRITER, 1, 5);
+  wrefresh(info->CHATWRITER);
+  write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
+  noecho();
+  //Limpa Bufer da mensagem;
+  memset(&ChatMessage.action.msg,' ',100);
+}
+*/
 
-    wscanw(info->CHATWRITER,"%29[^\n]",ChatMessage.action.msg);
-    box(info->CHATWRITER, 0, 5);
-    wrefresh(info->CHATWRITER);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void writeChatMessenger(Client_data *info){
 
-    write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
-    noecho();
-    //wclear(info->CHATWRITER);
-    memset(&ChatMessage.action.msg,' ',100);
+  Package_Cli ChatMessage;
+
+  ChatMessage.TYPE = USER_CHAT;
+  ChatMessage.PID = getpid();
+  echo();
+  wmove(info->CHATWRITER, 1, 1);
+  wrefresh(info->CHATWRITER);
+  wscrl(info->CHATWRITER, TRUE);
+  //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
+  wgetnstr(info->CHATWRITER,ChatMessage.action.msg, 22);
+  //box(info->CHATWRITER, 1, );
+  wclear(info->CHATWRITER);
+  box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
+
+  wrefresh(info->CHATWRITER);
+  write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
+
+  //Limpa Bufer da mensagem;
+  memset(&ChatMessage.action.msg,' ',100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int sendCommandToServer(int key, Client_data *info){
@@ -81,8 +106,10 @@ int sendCommandToServer(int key, Client_data *info){
 void GAME_START(Client_data *info){
 
   int key = 0, i=0;
+  wmove(info->MAPVIEWER, 0, 0);
   keypad(info->MAPVIEWER, TRUE);
   while ((key = tolower(wgetch(info->MAPVIEWER))) != 113){
+    wmove(info->MAPVIEWER, 0, 0);
     //sendCommandToServer(key,info);
 
     switch (key) {
@@ -199,23 +226,29 @@ void CREATE_SPACE_GAME(Client_data *info)
 
   //altura Comprimento posicao y posicao
   info->MAPVIEWER = newwin( 20, 30,4,25);
-  info->CHATWRITER = newwin(16,25,8,55);
+  info->CHATVIWER = newwin(17,25,4,55);
+  info->CHATWRITER = newwin(3,25,21,55);
 
   // pintar janela
   wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
+  wbkgd(info->CHATVIWER, COLOR_PAIR(1));
   wbkgd(info->CHATWRITER, COLOR_PAIR(1));
 
   //fazer casquilho
   box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
+  box(info->CHATVIWER, ACS_VLINE, ACS_HLINE);
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
 
   // deve-se fazer o refresh se quiser mostrar alteraçoes
   wrefresh(info->MAPVIEWER);
+  wrefresh(info->CHATVIWER);
   wrefresh(info->CHATWRITER);
+
 
   GAME_START(info);
   // aqui fecha janela
   delwin(info->MAPVIEWER);
+  delwin(info->CHATVIWER);
   delwin(info->CHATWRITER);
   endwin();
 }
@@ -479,6 +512,8 @@ void * receive_from_server( void * info)
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
+      case CHAT:
+        atualizaChatViwer(info,Package_Server.msg)
       }
   }
 }
