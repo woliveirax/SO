@@ -103,8 +103,8 @@ typedef struct PACKAGE_CLIENTE
 //Mensagens de controlo do servidor
 enum cellType {
   FREE = ' ',      //Pos Livre
-  WALL = '=',          //parede Destrutivel
-  IRON_WALL = '#',     //Parede indestrutivel
+  WALL = '#',          //parede Destrutivel
+  IRON_WALL = '@',     //Parede indestrutivel
   ENEMY = 'E',
   PLAYER = 'B',
   BOMB = 'o',
@@ -130,11 +130,11 @@ typedef union INFO {
 
 typedef struct PLAYER {
   int PID;                //Para identificar o proprio jogador.
-  int posx,posy;          //Posicao do jogador
   int score;              //Score do jogador
   int bomb;               //Bombinhas
   int megabomb;
   int orientation;
+  int posx,posy;
   //int vidas;            //TODO: int vidas ? se houve tempo
 }Player;
 
