@@ -2,6 +2,7 @@
 #define COMUN_INFO_H
 
 //Colors
+#define BLACK   "\x1B[30m"
 #define RED     "\x1B[31m"
 #define GREEN   "\x1B[32m"
 #define YELLOW  "\x1B[33m"
@@ -10,6 +11,15 @@
 #define CYAN    "\x1B[36m"
 #define WHITE   "\x1B[37m"
 #define RESET   "\x1B[0m"
+
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"
+#define BOLDWHITE   "\033[1m\033[37m"
 
 #define MAX 50
 #define SERVER_PIPE "../Data/pipes/ServerPipe"
