@@ -1,8 +1,5 @@
 #include "client.h"
 #include "../comun_info.h"
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que limpa o ecran;
@@ -17,15 +14,12 @@ void cls()
 void GO_TO_USER_EXIT(Client_data *info)
 {
   Package_Cli User_exit;
-
   User_exit.TYPE = USER_EXIT;
   User_exit.PID = getpid();
 
  if ( write (info->FD_SERVER_PIPE, &User_exit, sizeof(Package_Cli)) < 0)
  {
-
    printf ("\nError to send message USER_EXIT for SERVER .. !\n");
-
    exit(1);
  }
  return;
@@ -45,37 +39,32 @@ void VIEW_TOP_10(Client_data *info)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                          FUNÇOES RELATIVAS A JOGAR
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void atualizaChatViwer(Client_data *info, char *msg){
-  int i = 0;
-  echo();
-  if ( i = 0){
-    wmove(info->CHATVIEWER, 1, 1);
-    i = 1;
-  }
+  curs_set(0);
 
-  wrefresh(info->CHATVIEWER);
-  wscrl(info->CHATVIEWER, TRUE);
-
-
+  scrollok(info->CHATLIMVIEWER, TRUE);
+  wrefresh(info->CHATLIMVIEWER);
 	//winstr(info->CHATVIEWER, msg);
-  char str[200] ="Ola mundo";
-
-  wprintw(info->CHATVIEWER, str);
+  wprintw(info->CHATLIMVIEWER, msg);
   //waddstr(info->CHATVIEWER, msg);
-  wrefresh(info->CHATVIEWER);
-
+  wrefresh(info->CHATLIMVIEWER);
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void writeChatMessenger(Client_data *info){
 
   Package_Cli ChatMessage;
-
+  echo();
   ChatMessage.TYPE = USER_CHAT;
   ChatMessage.PID = getpid();
-  echo();
+  curs_set(2);
   wmove(info->CHATWRITER, 1, 1);
   wrefresh(info->CHATWRITER);
   //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
@@ -90,27 +79,39 @@ void writeChatMessenger(Client_data *info){
   memset(&ChatMessage.action.msg,0,100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int sendCommandToServer(int key, Client_data *info){
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void sendCommandToServer(int key, Client_data *info){
 
   Package_Cli SendComand;
-
   SendComand.TYPE = USER_ACTION;
   SendComand.PID = getpid();
   SendComand.action.key = key;
 
-  if ((write(info->FD_SERVER_PIPE, &SendComand, sizeof(Package_Cli))) < 0)
-    return -1;
-    else
-    return 0;
-}
+  write(info->FD_SERVER_PIPE, &SendComand, sizeof(Package_Cli));
 
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendStartGameToServer(Client_data *info){
+
+  Package_Cli StartGame;
+
+  StartGame.TYPE = USER_PLAY;
+  StartGame.PID = getpid();
+
+  write (info->FD_SERVER_PIPE, &StartGame, sizeof(Package_Cli));
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GAME_START(Client_data *info){
 
+  SendStartGameToServer(info);
   int key = 0, i=0;
   wmove(info->MAPVIEWER, 0, 0);
   keypad(info->MAPVIEWER, TRUE);
   while ((key = tolower(wgetch(info->MAPVIEWER))) != 113){
-    wmove(info->MAPVIEWER, 0, 0);
+    curs_set(0);
     //sendCommandToServer(key,info);
 
     switch (key) {
@@ -139,82 +140,33 @@ void GAME_START(Client_data *info){
   write(info->FD_SERVER_PIPE, &User_exit, sizeof(Package_Cli));
   return;
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-void CREATE_SPACE_GAME(Client_data *info)
-{
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*void FillInfoGame(Client_data *info){
 
-  initscr(); // inicia a janela de ncurses
+  echo();
+  curs_set(0);
+  wmove(info->INFOGAME, 2, 1);
+
+  wrefresh(info->INFOGAME);
   noecho();
-  refresh(); // atualiza
-  start_color(); // inicia cores
 
-  init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
-//       altura Comprimento posicao y posicao
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void FillHeader(Client_data *info){
 
-  //info->LOGOGAME = newwin(4,80,0,0);
-  //info->INFOGAME = newwin(20,25,4,0);
-  info->MAPVIEWER = newwin( 20, 30,4,25);
-  //info->TIMEGAMEVIEWER = newwin (4,25,4,55);
-  //info->CHATVIWER = newwin(16,25,8,55);
-  info->CHATWRITER = newwin(16,25,8,55);
-  // pintar janela
-  //wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
-  //wbkgd(info->LOGOGAME, COLOR_PAIR(1));
-  wbkgd(info->INFOGAME, COLOR_PAIR(1));
-  //wbkgd(info->TIMEGAMEVIEWER, COLOR_PAIR(1));
-  //wbkgd(info->CHATVIEWER, COLOR_PAIR(1));
-  //wbkgd(info->CHATWRITER, COLOR_PAIR(1));
-
-  //fazer casquilho
-  box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
-  //box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
-  //box(info->INFOGAME, ACS_VLINE,ACS_HLINE);
-  //box(info->TIMEGAMEVIEWER, ACS_VLINE,ACS_HLINE);
-  //box(info->CHATVIWER, ACS_VLINE,ACS_HLINE);
-  box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
-
-/*  for ( int i = 0 ; i < 20 ; i++){
-    for ( int j = 0; j < 30 ; j++){
-      mvwprintw(teste, i, j, "b");
-    }
-  }
-
-  //box(teste, ACS_VLINE, ACS_HLINE);
-  //wgetch(info->MAPVIEWER);
-  //wgetch(info->LOGOGAME);
-  //wgetch(info->INFOGAME);
-  //wgetch(info->TIMEGAMEVIEWER);
-  //wgetch(info->CHATVIWER);
-  //wgetch(info->CHATWRITER);
-  // deve-se fazer o refresh se quiser mostrar alteraçoes
-  wrefresh(info->MAPVIEWER);
-  //wrefresh(info->LOGOGAME);
-  //wrefresh(info->INFOGAME);
-  //wrefresh(info->TIMEGAMEVIEWER);
-  //wrefresh(info->CHATVIWER);
-  wrefresh(info->CHATWRITER);
-
-  /*delwin(info->MAPVIEWER);
-  delwin(info->LOGOGAME);
-  delwin(info->INFOGAME);
-  delwin(info->TIMEGAMEVIEWER);
-  delwin(info->HISTORYGAMEKEY);
-  endwin();
-
-  GAME_START(info);
-  wrefresh(info->MAPVIEWER);
-  // aqui fecha janela
-  delwin(info->MAPVIEWER);
-  //delwin(info->LOGOGAME);
-  //delwin(info->INFOGAME);
-  //delwin(info->TIMEGAMEVIEWER);
-  //delwin(info->CHATVIWER);
-  delwin(info->CHATWRITER);
-  endwin();
-}*/
-
+  char Title[30] = "_BomberMan_";
+  echo();
+  curs_set(0);
+  wmove(info->INFOGAME, 3, 35);
+  mvprintw(2, 1, Title);
+  wrefresh(info->INFOGAME);
+  noecho();
+}
+*/
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CREATE_SPACE_GAME(Client_data *info)
 {
 
@@ -226,30 +178,48 @@ void CREATE_SPACE_GAME(Client_data *info)
   init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
 
   //altura Comprimento posicao y posicao
+  info->LOGOGAME = newwin(4,80,0,0);
+  info->INFOGAME = newwin(20,25,4,0);
   info->MAPVIEWER = newwin( 20, 30,4,25);
   info->CHATVIEWER = newwin(17,25,4,55);
+  info->CHATLIMVIEWER = newwin(15,23,5,56);
   info->CHATWRITER = newwin(3,25,21,55);
 
   // pintar janela
+  wbkgd(info->LOGOGAME, COLOR_PAIR(1));
+  wbkgd(info->INFOGAME, COLOR_PAIR(1));
   wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
   wbkgd(info->CHATVIEWER, COLOR_PAIR(1));
+  wbkgd(info->CHATLIMVIEWER, COLOR_PAIR(1));
   wbkgd(info->CHATWRITER, COLOR_PAIR(1));
 
   //fazer casquilho
+  box(info->LOGOGAME, ACS_VLINE, ACS_HLINE);
+  box(info->INFOGAME, ACS_VLINE, ACS_HLINE);
   box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
   box(info->CHATVIEWER, ACS_VLINE, ACS_HLINE);
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
 
   // deve-se fazer o refresh se quiser mostrar alteraçoes
+  wrefresh(info->LOGOGAME);
+  wrefresh(info->INFOGAME);
   wrefresh(info->MAPVIEWER);
   wrefresh(info->CHATVIEWER);
+  wrefresh(info->CHATLIMVIEWER);
   wrefresh(info->CHATWRITER);
 
+  //FillHeader(info);
+
+  //FillInfoGame(info);
 
   GAME_START(info);
+
   // aqui fecha janela
+  delwin(info->LOGOGAME);
+  delwin(info->INFOGAME);
   delwin(info->MAPVIEWER);
   delwin(info->CHATVIEWER);
+  delwin(info->CHATLIMVIEWER);
   delwin(info->CHATWRITER);
   endwin();
 }
@@ -484,8 +454,9 @@ void change_pipe_path(Client_data *info)
 void * receive_from_server( void * info)
 {
   Client_data * info_client = ( Client_data * ) info;
+  // TODO ALOCAR MEMORIA ARA PACKAGE SERVER
+  gameInfo  Package_Server;
 
-  gameInfo Package_Server;
 
   if ( OPEN_CLIENT_PIPE_READ(info_client) < 0 )
   {
