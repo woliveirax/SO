@@ -26,6 +26,7 @@ gameInfo * initMapPackage()
     exit(0);
   }
   memset(temp,0,sizeof(gameInfo));
+  game = false;
   return temp;
 }
 
@@ -33,6 +34,8 @@ int main(int argc, char *argv[])
 {
   signal(SIGUSR1,HandleSignal);
   signal(SIGINT,HandleSignal);
+
+  pthread_mutex_init(&map_token,NULL);
 
   ClientsData data;
   data.nClients = 0;

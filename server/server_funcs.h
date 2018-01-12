@@ -29,6 +29,8 @@ void freeSpace(char **array);
 char ** getComandAndArguments(char * string, char ** command, int * argc);
 void handleCommand(char * str, ClientsData * Data);
 
+//Game Functions & Vars
+
 //Console functions
 void invalidCommand(char * command);
 void console(ClientsData * Data);

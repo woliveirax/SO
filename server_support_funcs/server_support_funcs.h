@@ -13,8 +13,11 @@
 #include "../server_support_funcs/server_support_funcs.h"
 #include "../server/server_structures.h"
 
+pthread_mutex_t map_token;
+
 ClientsData * global_clients;
 gameInfo * global_map;
+bool game;
 
 int help(int argc, char *argv[]);
 int addUser (int argc, char *argv[]);

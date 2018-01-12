@@ -240,6 +240,34 @@ void sendMapToClients(ClientsData * data)
         printf("Erro ao mandar mapa ao cliente %s...\n",data->clients[i].username);
 }
 
+Map * getFreeMapPos()
+{
+  srand(time(0));
+  Map * temp;
+
+  do
+  {
+    temp = &global_map->map[rand()%20][rand()%30];
+  }while(temp->type != FREE);
+
+  return temp;
+}
+
+void insertUserIntoMap(ClientsData * data, int PID)
+{
+  Client * cli = getUserByPID(data,PID);
+  Map * myPos = getFreeMapPos();
+
+  pthread_mutex_lock(&map_token);
+  myPos->type = PLAYER;
+  pthread_mutex_unlock(&map_token);
+  myPos->player.PID = PID;
+  myPos->player.score = 0;
+  myPos->player.bomb = 2;
+  myPos->player.megabomb = 1;
+  myPos->player.orientation = KEY_UP;
+}
+
 void validaMovimentos(Player * player, int mov)
 {
   switch(mov)
@@ -265,9 +293,16 @@ void userMovement(ClientsData * data, Package_Cli pkg)
   sprintf(message,"O utilzador %s carregou na tecla %c",cli->username,pkg.action.key);
   printf("%s\n",message);
 
+
   //validaMovimentos(Player *player, int mov);
 
   sendMapToClients(data);
+  for(int x = 0; x < 21;x++)
+  {
+    printf("\n");
+    for(int y = 0; y < 31; y++)
+      printf("%c",global_map->map[x][y].type);
+  }
 }
 
 void readData(ClientsData * Data,int serverFD)
@@ -288,8 +323,13 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_PLAY:
-      printf("Enters game\n");
+      if(!game)
+      {
+        generateMap(1);
+        game = true;
+      }
       userEntersGame(Data,package_cli.PID);
+      insertUserIntoMap(Data,package_cli.PID);
       break;
 
     case USER_QUIT:
