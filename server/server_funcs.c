@@ -209,8 +209,7 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
   Client * client = getUserByPID(data,cli.PID);
 
   global_map->type = USER_CHAT;
-  sprintf(global_map->msg,"%50s: %30s\n",client->username,cli.action.msg);
-  //printf("%s\n",global_map->msg);
+  sprintf(global_map->msg,"%s: %s\n",client->username,cli.action.msg);
 
   for(int i = 0; i < data->nClients ; i++)
     if(write(data->clients[i].FD,global_map,sizeof(gameInfo)) == -1)
