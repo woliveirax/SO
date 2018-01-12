@@ -202,11 +202,11 @@ void showCurrentUsers(int argc, char * argv[], ClientsData Data)
 
   for(int i = 0;i < Data.nClients;i++)
   {
-    printf(" %d ->" RED " %s ",i+1,Data.clients[i].username);
+    printf(" %d ->" BOLDYELLOW " %s ",i+1,Data.clients[i].username);
     if(Data.clients[i].inGame)
-      printf(GREEN "%s\n" RESET,"InGame");
+      printf(BOLDGREEN "%s\n" RESET,"InGame");
     else
-      printf(CYAN "%s\n" RESET,"Online");
+      printf(BOLDCYAN "%s\n" RESET,"Online");
   }
 }
 
