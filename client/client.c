@@ -154,15 +154,14 @@ void GAME_START(Client_data *info){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void FillHeader(Client_data *info){
 
   char Title[30] = "_BomberMan_";
-  echo();
   curs_set(0);
-  wmove(info->INFOGAME, 3, 35);
-  mvprintw(2, 1, Title);
-  wrefresh(info->INFOGAME);
-  noecho();
+  wmove(info->LOGOGAME, 2, 1);
+  mvprintw(2,1,Title);
+  wrefresh(info->LOGOGAME);
 }
 */
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -485,10 +484,10 @@ void * receive_from_server( void * info)
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
-      case USER_CHAT:   //TODO alterar para CHAT
+      case SERVER_CHAT:   
         atualizaChatViwer(info, Package_Server.msg);
         break;
-      case MAP:
+      case SERVER_MAP:
       printf ("\nAvailable in a few moments...\n");
       break;
       }
