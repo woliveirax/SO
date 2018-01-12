@@ -33,17 +33,12 @@ typedef struct Client_Data
   WINDOW *LOGOGAME;                   // janela onde estará o nome do jogo
   WINDOW *INFOGAME;                   // janela para ver informaçao relativa ao jogo
   WINDOW *CHATVIEWER;                  // janela para ver informaçao digitada pelo utilizador;
+  WINDOW *CHATLIMVIEWER;
   WINDOW *CHATWRITER;                 // Janela para enviar mensagem para CHAT pelo utilizador;
 
 }Client_data;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-typedef struct Map_Client
-{
-
-
-}map;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Client_options(Client_data *info);
 int main(int argc, char * argv[]);
