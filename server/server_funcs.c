@@ -17,7 +17,6 @@ int criaServerPipe()
   else
   {
       printf("Uma instancia do servidor já se econtra inicializada!\n");
-
       exit(1);
   }
 
@@ -208,15 +207,37 @@ void sendMessageGlobal(ClientsData * data,Package_Cli cli)
 {
   Client * client = getUserByPID(data,cli.PID);
 
-  global_map->type = USER_CHAT;
-  sprintf(global_map->msg,"%50s: %30s\n",client->username,cli.action.msg);
-  //printf("%s\n",global_map->msg);
+  global_map->type = SERVER_CHAT;
+  sprintf(global_map->msg,"%s: %s",client->username,cli.action.msg);
 
   for(int i = 0; i < data->nClients ; i++)
     if(write(data->clients[i].FD,global_map,sizeof(gameInfo)) == -1)
     {
       printf("Impossível enviar mensagem ao utilizador: %s",data->clients[i].username);
     }
+}
+
+void generateMap(int complexity)
+{
+  srand(time(0));
+  int type[2] = {FREE, WALL};
+
+  //Fill collums:
+  for(int x = 0; x < 20; x++)
+    for(int y = 0; y < 30; y++)
+      if(y % 2 == 1 && x % 2 == 1)
+        global_map->map[x][y].type = IRON_WALL;
+      else
+        global_map->map[x][y].type = type[rand()%2];
+}
+
+void sendMapToClients(ClientsData * data)
+{
+  global_map->type = SERVER_MAP;
+  for(int i = 0; i < data->nClients; i++)
+    if(data->clients[i].inGame)
+      if(write(data->clients[i].FD,global_map,sizeof(gameInfo)) == -1)
+        printf("Erro ao mandar mapa ao cliente %s...\n",data->clients[i].username);
 }
 
 void validaMovimentos(Player * player, int mov)
@@ -243,6 +264,10 @@ void userMovement(ClientsData * data, Package_Cli pkg)
   char message[100];
   sprintf(message,"O utilzador %s carregou na tecla %c",cli->username,pkg.action.key);
   printf("%s\n",message);
+
+  //validaMovimentos(Player *player, int mov);
+
+  sendMapToClients(data);
 }
 
 void readData(ClientsData * Data,int serverFD)
@@ -263,6 +288,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_PLAY:
+      printf("Enters game\n");
       userEntersGame(Data,package_cli.PID);
       break;
 

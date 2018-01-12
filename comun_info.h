@@ -1,6 +1,15 @@
 #ifndef COMUN_INFO_H
 #define COMUN_INFO_H
 
+//Colors
+#define RED     "\x1B[31m"
+#define GREEN   "\x1B[32m"
+#define YELLOW  "\x1B[33m"
+#define BLUE    "\x1B[34m"
+#define MAGENTA "\x1B[35m"
+#define CYAN    "\x1B[36m"
+#define WHITE   "\x1B[37m"
+#define RESET   "\x1B[0m"
 
 #define MAX 50
 #define SERVER_PIPE "../Data/pipes/ServerPipe"
@@ -10,6 +19,7 @@
 //#define CLIENT_PIPE_TEMPLATE "/tmp/Client_%d"
 
 #define USERS_LOGIN_DATA "../Data/users.data"
+
 
 //tipo de mensagem.
 enum MessageType {
@@ -39,10 +49,8 @@ enum  commands {
   COMMAND_DOWN = KEY_DOWN,
   COMMAND_RIGHT = KEY_RIGHT,
   COMMAND_LEFT = KEY_LEFT,
-  COMMAND_SMALLBOMB1 = 122,   //TODO REVER ISTO
-  COMMAND_SMALLBOMB2 = 90,
-  COMMAND_BIGBOMB1 = 120,
-  COMMAND_BIGBOMB2 = 88,     //TODO REVER ISTO
+  COMMAND_SMALLBOMB = 'z',
+  COMMAND_BIGBOMB = 120,
   COMMAND_JUMP1 = 97,   //TODO Rever isto
   COMMAND_JUMP2 = 65,
   COMMAND_QUIT1 = 113,  //TODO Rever isto
@@ -84,16 +92,16 @@ typedef struct PACKAGE_CLIENTE
 
 //Mensagens de controlo do servidor
 enum cellType {
-  FREE = 0,      //Pos Livre
-  WALL,          //parede Destrutivel
-  IRON_WALL,     //Parede indestrutivel
-  ENEMY,
-  PLAYER,
-  BOMB,
-  MEGABOMB,
-  OBJECT,
-  BONUS,
-  EXIT
+  FREE = ' ',      //Pos Livre
+  WALL = '=',          //parede Destrutivel
+  IRON_WALL = '#',     //Parede indestrutivel
+  ENEMY = 'E',
+  PLAYER = 'B',
+  BOMB = 'o',
+  MEGABOMB = '0',
+  OBJECT = '@',
+  BONUS = '*',
+  EXIT = 'X'
 };
 
 enum Server_Response {
@@ -101,8 +109,8 @@ enum Server_Response {
   SERVER_SHUTDOWN,   // resposta servidor vai encerrar
   LOGOUT_RESPONSE,   // resposta utilizador vai fazer shutdown
   SERVER_KICK,       // reposta utilizado vai kickar
-  MAP,
-  CHAT
+  SERVER_MAP,
+  SERVER_CHAT
 };
 
 typedef union INFO {

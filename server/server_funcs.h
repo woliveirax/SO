@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <ncurses.h>
+#include <time.h>
 
 #include "../comun_info.h"
 #include "server_structures.h"

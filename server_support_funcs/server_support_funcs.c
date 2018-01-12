@@ -201,7 +201,13 @@ void showCurrentUsers(int argc, char * argv[], ClientsData Data)
   printf("Clientes ligados: \n");
 
   for(int i = 0;i < Data.nClients;i++)
-    printf(" %d -- %s\n",i+1,Data.clients[i].username);
+  {
+    printf(" %d ->" RED " %s ",i+1,Data.clients[i].username);
+    if(Data.clients[i].inGame)
+      printf(GREEN "%s\n" RESET,"InGame");
+    else
+      printf(CYAN "%s\n" RESET,"Online");
+  }
 }
 
 //####################################################################################
@@ -218,8 +224,7 @@ void sendfromserverShutdown(ClientsData * Data)
     {
       if(write(Data->clients[i].FD,&Server_Shutdown,sizeof(gameInfo)) <= 0)
       {
-        printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador com o PID");
-
+        printf("Nao foi possivel enviar a mensagem de Shutdown ao utilizador %s\n",Data->clients[i].username);
         return;
       }
       i++;

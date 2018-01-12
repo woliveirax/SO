@@ -17,7 +17,7 @@ void HandleSignal(int s)
   }
 }
 
-gameInfo * createMapPackage()
+gameInfo * initMapPackage()
 {
   gameInfo * temp = malloc(sizeof(gameInfo));
   if(temp == NULL)
@@ -25,6 +25,7 @@ gameInfo * createMapPackage()
     perror("Não foi possível alocar memória para o pacote do mapa!: ");
     exit(0);
   }
+  memset(temp,0,sizeof(gameInfo));
   return temp;
 }
 
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
   ClientsData data;
   data.nClients = 0;
   global_clients = &data;
-  global_map = createMapPackage();
+  global_map = initMapPackage();
 
   clearScreen();
 
