@@ -1,6 +1,44 @@
 #include "client.h"
 #include "../comun_info.h"
 #include <curses.h>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GAME_INFO(Client_data *info){
+    for ( int y = 0 ; y < 21; y++ ){
+      for ( int x = 0; x < 31; x++ ){
+          mvwprintw(info->MAPVIEWER, y+1, x+1, "%c");
+      }
+    }
+    wrefresh(info->MAPVIEWER);
+}
+void SERVER_GAME(Client_data *info){
+
+  initscr(); // inicia a janela de ncurses
+  noecho();
+  refresh(); // atualiza
+  start_color(); // inicia cores
+  curs_set(0);
+  init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
+  //altura Comprimento posicao y posicao
+  info->MAPVIEWER = newwin( 22, 32,2,23);
+  // pintar janela
+  wbkgd(info->MAPVIEWER, COLOR_PAIR(1));
+  //fazer casquilho
+  box(info->MAPVIEWER, ACS_VLINE, ACS_HLINE);
+  // deve-se fazer o refresh se quiser mostrar alteraçoes
+  wrefresh(info->MAPVIEWER);
+
+  GAME_INFO(info);
+  // aqui fecha janela
+  delwin(info->MAPVIEWER);
+  endwin();
+
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //funçao que limpa o ecran;
@@ -48,17 +86,15 @@ void VIEW_TOP_10(Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void atualizaMapViewer(Client_data *info, gameInfo *Package){
-  wmove(info->MAPVIEWER, 1, 1);
-  wrefresh(info->MAPVIEWER);
   for ( int y = 0 ; y < 21; y++ ){
     for ( int x = 0; x < 31; x++ ){
     //  waddstr(info->MAPVIEWER, Package->map[y][x].type);
-        //mvwprintw(info->MAPVIEWER, y, x, "%c", Package->map[y][x].type);
-        printf ("%c", Package->map[y][x].type );
-        mvwprintw(info->MAPVIEWER, y+1, x+1, "%c", 'c');
-        wrefresh(info->MAPVIEWER);
+        //mvwprintw(info->MAPVIEWER, y, x, "%c", );
+        mvwprintw(info->MAPVIEWER, y+1, x+1, "%c", Package->map[y][x].type);
     }
+
   }
+  wrefresh(info->MAPVIEWER);
 }
 void atualizaChatViwer(Client_data *info, char *msg){
   curs_set(0);
@@ -171,11 +207,11 @@ void CREATE_SPACE_GAME(Client_data *info)
   init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
 
   //altura Comprimento posicao y posicao
-  info->LOGOGAME = newwin(4,80,0,0);
-  info->INFOGAME = newwin(20,25,4,0);
-  info->MAPVIEWER = newwin( 20, 30,4,25);
-  info->CHATVIEWER = newwin(17,25,4,55);
-  info->CHATLIMVIEWER = newwin(15,23,5,56);
+  info->LOGOGAME = newwin(4,23,2,0);
+  info->INFOGAME = newwin(18,23,6,0);
+  info->MAPVIEWER = newwin( 22, 32,2,23);
+  info->CHATVIEWER = newwin(19,25,2,55);
+  info->CHATLIMVIEWER = newwin(15,23,3,56);
   info->CHATWRITER = newwin(3,25,21,55);
 
   // pintar janela
@@ -234,9 +270,8 @@ void SEND_USER_START_GAME(Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void USER_MENU( Client_data *info)
 {
-  int choice = 0;
+  char choice[1];
 
-  while(1)
     do {
 
       printf ("\nUSER OPTION\n");
@@ -245,20 +280,20 @@ void USER_MENU( Client_data *info)
       printf("3.View connected users.\n");
       printf("4.Logout.\n");
       printf("Choice: ");
-      scanf(" %d", &choice);
+      scanf(" %s", choice);
 
-      switch (choice)
+      switch (choice[0])
       {
-        case 1 : CREATE_SPACE_GAME(info);
+        case '1' : CREATE_SPACE_GAME(info);
                  break;
-        case 2 : VIEW_TOP_10(info);
+        case '2' : VIEW_TOP_10(info);
                  break;
-        case 3 : VIEW_CON_USERS(info);
+        case '3' : VIEW_CON_USERS(info);
                  break;
-        case 4 : GO_TO_USER_EXIT(info);
+        case '4' : GO_TO_USER_EXIT(info);
                  break;
       }
-    }while (choice < 1 || choice > 4);
+    }while (choice[0] !=  '1' || choice[0] != '2' || choice[0] !=  '3' || choice[0] !=  '4');
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,6 +373,8 @@ void CLIENT_LOGIN_( Client_data *info)
 
   do {
 
+  printf ("\nUser Login:\n");
+
   printf ("\nUsername: ");
 
   scanf (" %49s", login.action.login_request.username);
@@ -368,6 +405,7 @@ void CLIENT_LOGIN_( Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CLIENT_EXIT(Client_data *info)
 {
+
   close(info->FD_SERVER_PIPE);
   unlink(info->CLIENT_PIPE);
   exit(0);
@@ -377,27 +415,28 @@ void CLIENT_EXIT(Client_data *info)
 //FUNÇAO DE OPÇOES DE CLIENTE
 void Client_options(Client_data *info)
 {
-  int choice;
-                                                                                  // TODO fazer os menus, ver na nas curiosidades;
-while(1)
+  char choice[1];
+                                      // TODO fazer os menus, ver na nas curiosidades;
   do {
     cls();
     printf ("\n\n\nMenu Client\n");
     printf ("1. Login\n");
-    printf ("2. Sair\n");
+    printf ("2. Exit\n");
     printf ("Choice: ");
-    scanf ("%d", &choice);
+    scanf (" %s", choice);
 
-    switch (choice)
+    switch (choice[0])
     {
-      case 1: CLIENT_LOGIN_(info);
+      case '1': CLIENT_LOGIN_(info);
               break;
 
-      case 2: CLIENT_EXIT(info);
+      case '2': CLIENT_EXIT(info);
               break;
     }
 
-  }while (choice < 1 || choice > 2);
+  }while (choice[0] != '1' || choice[0] != '2');
+
+  exit(0);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //FUNÇAO CRIA PIPE CLIENTe
@@ -425,7 +464,6 @@ int  open_SERVER_PIPE_WRITE (Client_data *info)
   } else {
 
     return 1;
-
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,6 +480,7 @@ void change_pipe_path(Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void * receive_from_server( void * info)
 {
+  int lerServidor = 1;
   Client_data * info_client = ( Client_data * ) info;
   // TODO ALOCAR MEMORIA ARA PACKAGE SERVER
   gameInfo  Package_Server;
@@ -452,7 +491,7 @@ void * receive_from_server( void * info)
     printf ("Error opening CLIENT PIPE for reading");
     return NULL;
   }
-  while (1){
+  while (lerServidor != 0){
 
     read( info_client->FD_CLIENT_PIPE, &Package_Server, sizeof(gameInfo) );
 
@@ -464,6 +503,7 @@ void * receive_from_server( void * info)
         break;
       case SERVER_SHUTDOWN:
         printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
+        lerServidor = 0;
         CLIENT_EXIT(info);
         break;
       case LOGOUT_RESPONSE:
