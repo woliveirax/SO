@@ -46,15 +46,24 @@ void VIEW_TOP_10(Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void atualizaMapViewer(Client_data *info, gameInfo *Package){
+  echo();
+  for ( int y = 1 ; y < 21; y++ ){
+    for ( int x = 0; x < 31; x++ ){
+        mvprintw(y,x,"%c", Package->map[y][x] );
+    }
+  }
+  wrefresh(info->MAPVIEWER);
+  noecho();
+}
 void atualizaChatViwer(Client_data *info, char *msg){
   curs_set(0);
-
+  echo();
   scrollok(info->CHATLIMVIEWER, TRUE);
   wrefresh(info->CHATLIMVIEWER);
-	//winstr(info->CHATVIEWER, msg);
   wprintw(info->CHATLIMVIEWER, msg);
-  //waddstr(info->CHATVIEWER, msg);
   wrefresh(info->CHATLIMVIEWER);
+  noecho();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +73,7 @@ void writeChatMessenger(Client_data *info){
   echo();
   ChatMessage.TYPE = USER_CHAT;
   ChatMessage.PID = getpid();
-  curs_set(2);
+  curs_set(1);
   wmove(info->CHATWRITER, 1, 1);
   wrefresh(info->CHATWRITER);
   //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
@@ -74,9 +83,9 @@ void writeChatMessenger(Client_data *info){
   box(info->CHATWRITER, ACS_VLINE,ACS_HLINE);
   wrefresh(info->CHATWRITER);
   write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
-
   //Limpa Bufer da mensagem;
   memset(&ChatMessage.action.msg,0,100);
+  noecho();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,13 +116,14 @@ void SendStartGameToServer(Client_data *info){
 void GAME_START(Client_data *info){
 
   SendStartGameToServer(info);
+
   int key = 0, i=0;
   wmove(info->MAPVIEWER, 0, 0);
   keypad(info->MAPVIEWER, TRUE);
   while ((key = tolower(wgetch(info->MAPVIEWER))) != 113){
+    noecho();
     curs_set(0);
     //sendCommandToServer(key,info);
-
     switch (key) {
       case KEY_UP:
         sendCommandToServer(key, info);
@@ -142,28 +152,8 @@ void GAME_START(Client_data *info){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*void FillInfoGame(Client_data *info){
-
-  echo();
-  curs_set(0);
-  wmove(info->INFOGAME, 2, 1);
-
-  wrefresh(info->INFOGAME);
-  noecho();
-
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void FillHeader(Client_data *info){
-
-  char Title[30] = "_BomberMan_";
-  curs_set(0);
-  wmove(info->LOGOGAME, 2, 1);
-  mvprintw(2,1,Title);
-  wrefresh(info->LOGOGAME);
-}
-*/
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CREATE_SPACE_GAME(Client_data *info)
@@ -173,7 +163,7 @@ void CREATE_SPACE_GAME(Client_data *info)
   noecho();
   refresh(); // atualiza
   start_color(); // inicia cores
-
+  curs_set(0);
   init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
 
   //altura Comprimento posicao y posicao
@@ -206,10 +196,6 @@ void CREATE_SPACE_GAME(Client_data *info)
   wrefresh(info->CHATVIEWER);
   wrefresh(info->CHATLIMVIEWER);
   wrefresh(info->CHATWRITER);
-
-  //FillHeader(info);
-
-  //FillInfoGame(info);
 
   GAME_START(info);
 
@@ -484,11 +470,11 @@ void * receive_from_server( void * info)
         printf("\nYou've been kicked from the server.\n");
         CLIENT_EXIT(info);
         break;
-      case SERVER_CHAT:   
+      case SERVER_CHAT:
         atualizaChatViwer(info, Package_Server.msg);
         break;
       case SERVER_MAP:
-      printf ("\nAvailable in a few moments...\n");
+        atualizaMapViewer(info, &Package_Server);
       break;
       }
   }
