@@ -44,27 +44,18 @@ void VIEW_TOP_10(Client_data *info)
   printf ("Available in a few days");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// BACKUP WRITE CHAT MESSAGE
-/*
-void writeChatMessenger(Client_data *info){
-
-  Package_Cli ChatMessage;
-
-  ChatMessage.TYPE = USER_CHAT;
-  ChatMessage.PID = getpid();
-  keypad(info->CHATWRITER, TRUE);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void atualizaChatViwer(Client_data *info, char *msg){
+  initscr();
   echo();
-  //copia mensagem até 30 caracteres para estrutura a enviar para servidor;
-  wscanw(info->CHATWRITER,"%29[^\n]",ChatMessage.action.msg);
-  box(info->CHATWRITER, 1, 5);
-  wrefresh(info->CHATWRITER);
-  write(info->FD_SERVER_PIPE, &ChatMessage, sizeof(Package_Cli));
-  noecho();
-  //Limpa Bufer da mensagem;
-  memset(&ChatMessage.action.msg,' ',100);
-}
-*/
+  wmove(info->CHATVIWER, 1, 1);
+  wrefresh(info->CHATVIWER);
+  wscrl(info->CHATVIWER, TRUE);
+	printw(msg);
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void writeChatMessenger(Client_data *info){
 
@@ -474,6 +465,7 @@ void change_pipe_path(Client_data *info)
 {
   sprintf (info->CLIENT_PIPE, CLIENT_PIPE_TEMPLATE , getpid());
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -513,7 +505,11 @@ void * receive_from_server( void * info)
         CLIENT_EXIT(info);
         break;
       case CHAT:
-        atualizaChatViwer(info,Package_Server.msg)
+        atualizaChatViwer(info,Package_Server.msg);
+        break;
+      case MAP:
+      printf ("\nAvailable in a few moments...\n");
+      break;
       }
   }
 }
