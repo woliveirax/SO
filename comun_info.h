@@ -3,8 +3,8 @@
 
 
 #define MAX 50
-#define SERVER_PIPE "../Data/ServerPipe"
-#define CLIENT_PIPE_TEMPLATE "../Data/Client_%d"
+#define SERVER_PIPE "../Data/pipes/ServerPipe"
+#define CLIENT_PIPE_TEMPLATE "../Data/pipes/Client_%d"
 
 //#define SERVER_PIPE "/tmp/ServerPipe"
 //#define CLIENT_PIPE_TEMPLATE "/tmp/Client_%d"
