@@ -61,11 +61,11 @@ enum  commands {
   COMMAND_LEFT = KEY_LEFT,
   COMMAND_SMALLBOMB = 'z',
   COMMAND_BIGBOMB = 120,
-  COMMAND_JUMP1 = 97,   //TODO Rever isto
+  COMMAND_JUMP = ' ',   //TODO Rever isto
   COMMAND_JUMP2 = 65,
   COMMAND_QUIT1 = 113,  //TODO Rever isto
   COMMAND_QUIT2 = 81,
-  COMMAND_CHAT = KEY_ENTER
+  COMMAND_CHAT = '\n'
 };
 
 //##############################################################################
@@ -100,11 +100,18 @@ typedef struct PACKAGE_CLIENTE
 //                              PACOTE DO SERVIDOR:
 //##############################################################################
 
+enum ORIENTATION {
+
+  up = 0,
+  down,
+  left,
+  right
+};
 //Mensagens de controlo do servidor
 enum cellType {
   FREE = ' ',      //Pos Livre
-  WALL = '#',          //parede Destrutivel
-  IRON_WALL = '@',     //Parede indestrutivel
+  WALL = '|',          //parede Destrutivel
+  IRON_WALL = '#',     //Parede indestrutivel
   ENEMY = 'E',
   PLAYER = 'B',
   BOMB = 'o',
@@ -122,6 +129,7 @@ enum Server_Response {
   SERVER_MAP,
   SERVER_CHAT
 };
+
 
 typedef union INFO {
   int login_answer;

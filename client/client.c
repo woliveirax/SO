@@ -177,6 +177,9 @@ void GAME_START(Client_data *info){
       case KEY_LEFT:
         sendCommandToServer(key, info);
         break;
+      case COMMAND_JUMP:
+        sendCommandToServer(key, info);
+        break;
       case  '\n':
         writeChatMessenger(info);
         break;
@@ -207,12 +210,13 @@ void CREATE_SPACE_GAME(Client_data *info)
   init_pair(1, COLOR_WHITE, COLOR_BLACK); // inicia par das cores da fonte e do Fundo
 
   //altura Comprimento posicao y posicao
-  info->LOGOGAME = newwin(4,23,2,0);
-  info->INFOGAME = newwin(18,23,6,0);
-  info->MAPVIEWER = newwin( 22, 32,2,23);
-  info->CHATVIEWER = newwin(19,25,2,55);
-  info->CHATLIMVIEWER = newwin(15,23,3,56);
-  info->CHATWRITER = newwin(3,25,21,55);
+
+  info->LOGOGAME =      newwin(4,20,1,0);
+  info->INFOGAME =      newwin(19,20,5,0);
+  info->MAPVIEWER =     newwin(23,33,1,21);
+  info->CHATVIEWER =    newwin(20,25,1,55);
+  info->CHATLIMVIEWER = newwin(16,23,2,56);
+  info->CHATWRITER =    newwin(3,25,21,55);
 
   // pintar janela
   wbkgd(info->LOGOGAME, COLOR_PAIR(1));

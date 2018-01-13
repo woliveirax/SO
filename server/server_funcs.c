@@ -223,12 +223,12 @@ void generateMap(int complexity)
   int type[2] = {FREE, WALL};
 
   //Fill collums:
-  for(int x = 0; x < 20; x++)
-    for(int y = 0; y < 30; y++)
+  for(int x = 0; x < 21; x++)
+    for(int y = 0; y < 31; y++)
       if(y % 2 == 1 && x % 2 == 1)
         global_map->map[x][y].type = IRON_WALL;
       else
-        global_map->map[x][y].type = type[rand()%2];
+        global_map->map[x][y].type = FREE;//type[rand()%2];
 }
 
 void sendMapToClients(ClientsData * data)
@@ -251,49 +251,77 @@ void getFreeMapPos(Client * cli)
     map = &global_map->map[rand()%20][rand()%30];
   }while(map->type != FREE);
 
+  map->type = PLAYER;
   cli->player = &map->player;
   map->player.PID = cli->PID;
-  map->player.orientation = KEY_UP;
+  map->player.orientation = left;
 
   pthread_mutex_unlock(&map_token);
+
 }
 
-void moveToPos(Client * cli,Map * orig, Map * dest)
+void moveToPos(Client * cli,Map * orig, Map * dest, int orientation)
 {
   pthread_mutex_lock(&map_token);
   orig->type = FREE;
   dest->type = PLAYER;
+  dest->player.orientation = orientation;
   cli->player = &dest->player;
   pthread_mutex_unlock(&map_token);
 }
 
 void validaMovimentos(Client * cli, int mov)
 {
+
   int x = cli->player->posx, y = cli->player->posy;
   printf("X: %d Y: %d\n",x,y);
 
   switch(mov)
   {
-    case KEY_UP:
-      if(global_map->map[x][y-1].type == FREE)
-        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-1]);
+    case COMMAND_LEFT:
+      //if(global_map->map[x][y-1].type == FREE)
+        if((y - 1) >= 0){
+          //global_map->map[x][y].player.orientation = left;
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-1],left);
+
+        }
+    break;
+
+    case COMMAND_RIGHT:
+      //if(global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type == ENEMY)
+      if(y+1 < 31){
+        //global_map->map[x][y].player.orientation = right;
+        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+1], right);
+      }
 
     break;
 
-    case KEY_DOWN:
-      if(global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type == ENEMY)
-        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+1]);
+    case COMMAND_UP:
+      if(x-1 >= 0){
+      //global_map->map[x][y].player.orientation = up;
+      //if(global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type == ENEMY)
+      moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y], up);
+      }
     break;
 
-    case KEY_LEFT:
-      if(global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type == ENEMY)
-        moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y]);
-
+    case COMMAND_DOWN:
+      if(x+1 < 21){
+        //mglobal_map->map[x][y].player.orientation = down;
+        moveToPos(cli,&global_map->map[x][y],&global_map->map[x+1][y], down);
+      }
+      //if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type == ENEMY)
     break;
 
-    case KEY_RIGHT:
-    if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type == ENEMY)
-      moveToPos(cli,&global_map->map[x+1][y],&global_map->map[x+1][y]);
+    case COMMAND_JUMP:
+        if ( global_map->map[x][y].player.orientation == left && y - 2 >= 0)
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
+        else if ( global_map->map[x][y].player.orientation == right & y+2 <= 31)
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
+        else if ( global_map->map[x][y].player.orientation == up && x-2 >= 0)
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
+        else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 21)
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
+
     break;
   }
 }
@@ -311,7 +339,7 @@ void readData(ClientsData * Data,int serverFD)
 {
   Client * client;
   Package_Cli package_cli;
-
+  //printf(" X: %d Y: %d\n",global_map->map[10][10].player.posx,global_map->map[10][10].player.posx);
   read(serverFD,&package_cli,sizeof(Package_Cli));
   client = getUserByPID(Data,package_cli.PID);
 
@@ -326,6 +354,7 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_PLAY:
+    printf(" X: %d Y: %d\n",global_map->map[10][10].player.posx,global_map->map[10][10].player.posx);
       if(!game)
       {
         generateMap(1);
@@ -333,6 +362,8 @@ void readData(ClientsData * Data,int serverFD)
       }
       userEntersGame(Data,package_cli.PID);
       getFreeMapPos(client);
+      sendMapToClients(Data);
+
       break;
 
     case USER_QUIT:
@@ -497,8 +528,6 @@ void invalidCommand(char * command)
 
 void console(ClientsData * Data)
 {
-  global_map = malloc(sizeof(gameInfo));
-
   //create_environment_variables();
   char buffer[buffer_size];
 
