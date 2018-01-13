@@ -118,6 +118,7 @@ enum cellType {
   MEGABOMB = '0',
   OBJECT = '@',
   BONUS = '*',
+  EXPLOSION = '=',
   EXIT = 'X'
 };
 
