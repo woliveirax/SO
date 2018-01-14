@@ -27,6 +27,7 @@ void * pipeMain(void * rcvData);
 void freeSpace(char **array);
 char ** getComandAndArguments(char * string, char ** command, int * argc);
 void handleCommand(char * str, ClientsData * Data);
+void sendMapToClients(ClientsData *clients);
 
 //Game Functions & Vars
 

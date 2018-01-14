@@ -3,106 +3,161 @@
 #include "../server_support_funcs/server_support_funcs.h"
 
 int TotalEnemy = 3;
-
 int RadiousVision = 2;
+/*
+void sendMapForClients(){
+  int i = 0;
+  while (global_clients[i].PID != NULL){
 
-void movEnemyforPosition(){
+    global_map->type = SERVER_MAP;
+      if(global_clients[i].inGame)
+        if(write(global_clients[i].FD,global_map,sizeof(gameInfo)) == -1)
+          printf("Erro ao mandar mapa ao cliente %s...\n",global_clients[i].username);
+
+  i++;
+  }
+}
+*/
 
 
+int movEnemyforPosition(Map *orig, Map *dest){
+  int jmpNextPos = 0;
+  pthread_mutex_lock(&map_token);
+  //if ( dest->type == FREE || dest->type == PLAYER){
+    dest->type=ENEMY;
+    orig->type=FREE;
+    printf ("\n\n\n\nCHEGUEI AQUIIIII\n\n");
+    jmpNextPos = 1;
+  //}
+  pthread_mutex_unlock(&map_token);
+  return jmpNextPos;
 }
 
-int verifyRadiousVision(Enemy enemy){
-
-  int x = enemy.posx, y = enemy.posy;
-
+int verifyRadiousVision(Enemy *enemy){
+  srand(time(0));
+  int x = enemy->posx, y = enemy->posy;
+  printf( "\nx = %d", x);
+  printf ("\ny = %d", y);
+  printf ("\nteste2\n");
 //verifica player top
   if ( y - RadiousVision < 0){
-    for ( int posy =  y ; posy = 0; posy-- ){
+    for ( int posy =  y ; posy == 0; posy-- ){
       if ( global_map->map[x][posy].type == PLAYER )
         return up;
     }
   } else {
-      for ( int posy = y; posy = y - RadiousVision; posy--){
+      for ( int posy = y; posy == y - RadiousVision; posy--){
         if (global_map->map[x][posy].type == PLAYER)
           return up;
       }
   }
   //verify player down
-  if  ( y + RadiousVision > 31){
-    for ( int posy = y; posy < 31; posy++){
+  if  ( y + RadiousVision > 30){
+    for ( int posy = y; posy == 30; posy++){
       if ( global_map->map[x][posy].type == PLAYER)
         return down;
     }
   } else {
-    for ( in posy = y ; posy < y + RadiousVision; posy++)
+    for ( int posy = y ; posy == y + RadiousVision; posy++)
       if ( global_map->map[x][posy].type == PLAYER)
         return down;
   }
   // verify player left
   if ( x - RadiousVision < 0){
-    for ( int posx = x; posx = 0 ; posx--){
+    for ( int posx = x; posx == 0 ; posx--){
       if ( global_map->map[posx][y].type == PLAYER)
         return left;
     }
   } else {
-    for ( int posx = x; posx = x - RadiousVision; posx--){
+    for ( int posx = x; posx == x - RadiousVision; posx--){
       if ( global_map->map[posx][y].type == PLAYER)
         return left;
     }
   }
   //verify player right
-  if ( x + RadiousVision > 21){
-    for ( int posx = x; posx < 21; posx++){
+  if ( x + RadiousVision > 20){
+    for ( int posx = x; posx == 20; posx++){
       if ( global_map->map[posx][y].type == PLAYER)
         return right;
     }
   } else {
-    for ( int posx = x; posx = x + RadiousVision; posx++){
+    for ( int posx = x; posx == x + RadiousVision; posx++){
       if ( global_map->map[posx][y].type == PLAYER)
         return right;
     }
   }
   return rand()%4;
 }
+
 void * Move_Enemy(void * enemy){
 
   int orientation = 0;
   int x = 0, y = 0;
-  Enemy * enemY = ( Enemy *) enemy;
+  Enemy *enemY = ( Enemy *) enemy;
   enemY->alive = 1;
-  while (enemy->alive == 1){
+  x = enemY->posx;
+  y = enemY->posy;
 
-    orientation = verifyRadiousVision(enemy);
+  while (enemY->alive == 1){
+
+    orientation = verifyRadiousVision(enemY);
+    printf ("\nOrientacao = %d\n", orientation);
 
     switch ( orientation ){
 
       case up:
-        if(y - 1  > 0)
-          movEnemyforPosition(enemy);
+        if(y - 1  > 0){
+        printf ("\ndown posx = %d  posy = %d\n",x,y);
+        printf ("\ndown posx = %d  posy = %d\n",x,y-1);
+          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y-1]) == 1){
+            enemY->posx = x;
+            enemY->posy = y - 1;
+          }
+        }
         break;
       case down:
-        if y + 1 < 31)
-          movEnemyforPosition(enemy);
+        if (y + 1 < 31){
+          printf ("\ndown posx = %d  posy = %d\n",x,y);
+          printf ("\ndown posx = %d  posy = %d\n",x,y+1);
+          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y+1]) == 1){
+          enemY->posx = x;
+          enemY->posy = y + 1;
+          }
+        }
         break;
       case left:
-        if ( x - 1 > 0)
-          movEnemyforPosition(enemy);
+        if ( x - 1 > 0){
+        printf ("\ndown posx = %d  posy = %d\n",x,y);
+        printf ("\ndown posx = %d  posy = %d\n",x-1,y);
+          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x-1][y]) == 1){
+            enemY->posx = x-1;
+            enemY->posy = y;
+        }
+      }
       break;
       case right:
-        if ( x + 1 < 31)
-          movEnemyforPosition();
+        if ( x + 1 < 31){
+        printf ("\ndown posx = %d  posy = %d\n",x,y);
+        printf ("\ndown posx = %d  posy = %d\n",x+1,y);
+        if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x+1][y]) == 1){
+          enemY->posx = x+1;
+          enemY->posy = y;
+        }
+      }
       break;
     }
+    sendMapToClients(global_clients);
+    sleep(1);
   }
 }
 void startEnemyMove(Enemy *enemy){
-  for (int i = 0; i < TotalEnemy; i++){
+  for (int i = 0; i < TotalEnemy; i++){  //TODO POR THREADS
     pthread_create(&enemy[i].enemy_ID, NULL, Move_Enemy, (void *) &enemy[i]);
   }
 }
 
 void putEnemyInMap(Enemy *enemy){
-
+  srand(time(0));
   //global_map[20][30]
   int x, y;
   for ( int i = 0 ; i < TotalEnemy; i++){
