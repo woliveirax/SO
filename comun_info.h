@@ -45,6 +45,11 @@ enum MessageType {
   USER_QUIT             //Mensagem de quit do jogo mas nao da aplicacao.
 };
 
+enum Bomb_size {
+  small = 2,
+  bomb = 4
+}
+
 //Resposta DA MENSAGEM USER_AUTH
 enum User_Auth_Resp {
   USER_LOGIN_ACCEPTED       =    0,

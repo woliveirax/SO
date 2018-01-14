@@ -273,12 +273,23 @@ void getFreeMapPos(Client * cli)
 
 void moveToPos(Client * cli,Map * orig, Map * dest, int orientation)
 {
-  pthread_mutex_lock(&map_token);
-  orig->type = FREE;
-  dest->type = PLAYER;
-  dest->player.orientation = orientation;
-  cli->player = &dest->player;
-  pthread_mutex_unlock(&map_token);
+  if(dest->type != EXIT)
+  {
+    pthread_mutex_lock(&map_token);
+    orig->type = FREE;
+    dest->type = PLAYER;
+    dest->player.orientation = orientation;
+    cli->player = &dest->player;
+    pthread_mutex_unlock(&map_token);
+  }
+  else
+  {
+    pthread_mutex_lock(&map_token);
+    orig->type = FREE;
+    dest->player.orientation = orientation;
+    cli->player = &dest->player;
+    pthread_mutex_unlock(&map_token);
+  }
 }
 
 int posValid(Client * cli, int orientation, int x, int y)
@@ -288,6 +299,17 @@ int posValid(Client * cli, int orientation, int x, int y)
 
   cli->player->orientation = orientation;
   return 0;
+}
+
+int jump(int x1, int x2, int y1, int y2)
+{
+  int avoid[4] = {WALL,BOMB,MEGABOMB,EXIT};
+
+  for(int i = 0; i < 4 ; i++)
+    if(global_map->map[x1][y1].type == avoid[i] || global_map->map[x2][y2].type == avoid[i])
+      return 0;
+
+  return 1;
 }
 
 void validaMovimentos(Client * cli, int mov)
@@ -325,22 +347,22 @@ void validaMovimentos(Client * cli, int mov)
     case COMMAND_JUMP:
         if (global_map->map[x][y].player.orientation == left && y - 2 >= 0)
         {
-          if(global_map->map[x][y-1].type != WALL && global_map->map[x][y-2].type != WALL)
+          if(jump(x,x,y-1,y-2))
             moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
         }
         else if ( global_map->map[x][y].player.orientation == right & y+2 <= 30)
         {
-          if(global_map->map[x][y+1].type != WALL && global_map->map[x][y+2].type != WALL)
+          if(jump(x,x,y+1,y+2))
             moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
         }
         else if ( global_map->map[x][y].player.orientation == up && x-2 >= 0)
         {
-          if(global_map->map[x-1][y].type != WALL && global_map->map[x-2][y].type != WALL)
+          if(jump(x-1,x-2,y,y))
             moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
         }
         else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 20)
         {
-          if(global_map->map[x+1][y].type != WALL && global_map->map[x+2][y].type != WALL)
+          if(jump(x+1,x+2,y,y))
             moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
         }
 
@@ -356,6 +378,60 @@ void userMovement(ClientsData * data, Package_Cli pkg)
 
   sendMapToClients(data);
 }
+
+void plantBomb(Map * pos, int size)
+{
+  if(size == small)
+    pos->type = bomb;
+  else
+    pos->type = megabomb;
+}
+
+void explode(x,y, int size)
+{
+  //Explode up n down
+  int init;
+  if()
+  for(int i = 0; i < size; i++)
+
+}
+
+//Funções da bomba
+void * bombAction (void * param)
+{
+  bombParam * info = (bombParam *) param;
+
+  int size = info->size;
+  Client * cli = info->player;
+  int x = cli->player->posx;
+  int y = cli->player->posy;
+  Map * bombPos = &global_map->map[x][y];
+
+
+  if(size == small)
+    (cli->player->bomb)--;
+  else
+    (cli->player->megabomb)--;
+
+  pthread_mutex_lock(&map_token);
+  plantBomb(bombPos,size);
+  pthread_mutex_unlock(&map_token);
+
+  sleep(2);
+
+  pthread_mutex_lock(&map_token);
+  explode(x,y,size);
+  pthread_mutex_unlock(&map_token);
+
+  if(size == small)
+    (cli->player->bomb)++;
+  else
+    (cli->player->megabomb)++;
+}
+
+//################################################################################################
+//################################ Fim de funções de jogo
+//################################################################################################
 
 void readData(ClientsData * Data,int serverFD)
 {
