@@ -2,6 +2,133 @@
 #include "../comun_info.h"
 #include "../server_support_funcs/server_support_funcs.h"
 
+int TotalEnemy = 3;
+
+int RadiousVision = 2;
+
+void movEnemyforPosition(){
+
+
+}
+
+int verifyRadiousVision(Enemy enemy){
+
+  int x = enemy.posx, y = enemy.posy;
+
+//verifica player top
+  if ( y - RadiousVision < 0){
+    for ( int posy =  y ; posy = 0; posy-- ){
+      if ( global_map->map[x][posy].type == PLAYER )
+        return up;
+    }
+  } else {
+      for ( int posy = y; posy = y - RadiousVision; posy--){
+        if (global_map->map[x][posy].type == PLAYER)
+          return up;
+      }
+  }
+  //verify player down
+  if  ( y + RadiousVision > 31){
+    for ( int posy = y; posy < 31; posy++){
+      if ( global_map->map[x][posy].type == PLAYER)
+        return down;
+    }
+  } else {
+    for ( in posy = y ; posy < y + RadiousVision; posy++)
+      if ( global_map->map[x][posy].type == PLAYER)
+        return down;
+  }
+  // verify player left
+  if ( x - RadiousVision < 0){
+    for ( int posx = x; posx = 0 ; posx--){
+      if ( global_map->map[posx][y].type == PLAYER)
+        return left;
+    }
+  } else {
+    for ( int posx = x; posx = x - RadiousVision; posx--){
+      if ( global_map->map[posx][y].type == PLAYER)
+        return left;
+    }
+  }
+  //verify player right
+  if ( x + RadiousVision > 21){
+    for ( int posx = x; posx < 21; posx++){
+      if ( global_map->map[posx][y].type == PLAYER)
+        return right;
+    }
+  } else {
+    for ( int posx = x; posx = x + RadiousVision; posx++){
+      if ( global_map->map[posx][y].type == PLAYER)
+        return right;
+    }
+  }
+  return rand()%4;
+}
+void * Move_Enemy(void * enemy){
+
+  int orientation = 0;
+  int x = 0, y = 0;
+  Enemy * enemY = ( Enemy *) enemy;
+  enemY->alive = 1;
+  while (enemy->alive == 1){
+
+    orientation = verifyRadiousVision(enemy);
+
+    switch ( orientation ){
+
+      case up:
+        if(y - 1  > 0)
+          movEnemyforPosition(enemy);
+        break;
+      case down:
+        if y + 1 < 31)
+          movEnemyforPosition(enemy);
+        break;
+      case left:
+        if ( x - 1 > 0)
+          movEnemyforPosition(enemy);
+      break;
+      case right:
+        if ( x + 1 < 31)
+          movEnemyforPosition();
+      break;
+    }
+  }
+}
+void startEnemyMove(Enemy *enemy){
+  for (int i = 0; i < TotalEnemy; i++){
+    pthread_create(&enemy[i].enemy_ID, NULL, Move_Enemy, (void *) &enemy[i]);
+  }
+}
+
+void putEnemyInMap(Enemy *enemy){
+
+  //global_map[20][30]
+  int x, y;
+  for ( int i = 0 ; i < TotalEnemy; i++){
+    pthread_mutex_lock(&map_token);
+    do{
+      x = rand()%20;
+      y = rand()%30;
+
+    }while (global_map->map[x][y].type != FREE);
+
+    global_map->map[x][y].type = ENEMY;
+    enemy[i].posx = x;
+    enemy[i].posy = y;
+    pthread_mutex_unlock(&map_token);
+  }
+}
+
+Enemy * CreateEnemy(){
+  Enemy *enemy;
+  enemy = malloc(sizeof(Enemy)*TotalEnemy);
+  if ( enemy == NULL){
+    perror("Error to make malloc for enemyes  struct");
+  }
+  return enemy;
+}
+
 //NOTE Named pipes
 int criaServerPipe()
 {
@@ -337,6 +464,7 @@ void userMovement(ClientsData * data, Package_Cli pkg)
 
 void readData(ClientsData * Data,int serverFD)
 {
+  Enemy *enemy;
   Client * client;
   Package_Cli package_cli;
   //printf(" X: %d Y: %d\n",global_map->map[10][10].player.posx,global_map->map[10][10].player.posx);
@@ -358,6 +486,9 @@ void readData(ClientsData * Data,int serverFD)
       if(!game)
       {
         generateMap(1);
+        enemy = CreateEnemy();
+        putEnemyInMap(enemy);
+        startEnemyMove(enemy);
         game = true;
       }
       userEntersGame(Data,package_cli.PID);

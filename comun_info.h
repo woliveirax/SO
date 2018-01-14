@@ -30,7 +30,6 @@
 
 #define USERS_LOGIN_DATA "../Data/users.data"
 
-
 //tipo de mensagem.
 enum MessageType {
   USER_COM = 0,         //Client connection
@@ -131,6 +130,13 @@ enum Server_Response {
   SERVER_CHAT
 };
 
+////////////////////////////////////////////
+typedef struct ENEMY {
+    pthread_t enemy_ID;    //ID da thread do inimigo
+    alive;
+    int posx,posy;         //Posicao do inimigo
+    char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
+}Enemy;
 
 typedef union INFO {
   int login_answer;
@@ -163,6 +169,7 @@ typedef struct GAMEINFO {
   char msg[100];
   int time;
 } gameInfo;
+
 
 
 #endif /* COMUN_INFO_H */

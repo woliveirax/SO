@@ -11,12 +11,13 @@ typedef struct BOMB {
   int posx,posy;          //Posição da bomba (ainda nao definida)
   int explosionSize;      //Tamanho explosao
 }Bomb;
-
+/*
 typedef struct ENEMY {
     pthread_t enemy_ID;    //ID da thread do inimigo
     int posx,posy;         //Posicao do inimigo
     char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
 }Enemy;
+*/
 
 typedef struct client {
   int PID;                    //PID do jogador
