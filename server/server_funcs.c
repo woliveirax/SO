@@ -236,7 +236,7 @@ void generateMap(int complexity)
       if(y % 2 == 1 && x % 2 == 1)
         global_map->map[x][y].type = IRON_WALL;
       else
-        global_map->map[x][y].type = type[rand()%1];
+        global_map->map[x][y].type = type[rand()%2];
 
   /*for(int x = 0; x < 21; x++)
     for(int y = 0; y < 31; y++)
@@ -269,7 +269,6 @@ void getFreeMapPos(Client * cli)
   map->player.orientation = left;
 
   pthread_mutex_unlock(&map_token);
-
 }
 
 void moveToPos(Client * cli,Map * orig, Map * dest, int orientation)
@@ -312,9 +311,9 @@ void validaMovimentos(Client * cli, int mov)
     break;
 
     case COMMAND_UP:
-      if(posValid(cli,up,x-1,y))
         if(x-1 >= 0)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y], up);
+          if(posValid(cli,up,x-1,y))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y], up);
     break;
 
     case COMMAND_DOWN:
@@ -324,14 +323,26 @@ void validaMovimentos(Client * cli, int mov)
     break;
 
     case COMMAND_JUMP:
-        if ( global_map->map[x][y].player.orientation == left && y - 2 >= 0)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
-        else if ( global_map->map[x][y].player.orientation == right & y+2 <= 31)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
+        if (global_map->map[x][y].player.orientation == left && y - 2 >= 0)
+        {
+          if(global_map->map[x][y-1].type != WALL && global_map->map[x][y-2].type != WALL)
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
+        }
+        else if ( global_map->map[x][y].player.orientation == right & y+2 <= 30)
+        {
+          if(global_map->map[x][y+1].type != WALL && global_map->map[x][y+2].type != WALL)
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
+        }
         else if ( global_map->map[x][y].player.orientation == up && x-2 >= 0)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
-        else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 21)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
+        {
+          if(global_map->map[x-1][y].type != WALL && global_map->map[x-2][y].type != WALL)
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
+        }
+        else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 20)
+        {
+          if(global_map->map[x+1][y].type != WALL && global_map->map[x+2][y].type != WALL)
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
+        }
 
     break;
   }
