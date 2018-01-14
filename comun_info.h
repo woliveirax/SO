@@ -133,7 +133,7 @@ enum Server_Response {
 ////////////////////////////////////////////
 typedef struct ENEMY {
     pthread_t enemy_ID;    //ID da thread do inimigo
-    alive;
+    int alive;
     int posx,posy;         //Posicao do inimigo
     char drop;             //Bonus que o inimigo poderá eventualmente deixar ao morrer.
 }Enemy;
