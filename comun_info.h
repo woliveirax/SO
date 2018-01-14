@@ -101,7 +101,6 @@ typedef struct PACKAGE_CLIENTE
 //##############################################################################
 
 enum ORIENTATION {
-
   up = 0,
   down,
   left,
