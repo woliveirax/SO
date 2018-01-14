@@ -20,7 +20,6 @@
 
 #define MAX 50
 #define buffer_size 300
-
 //Pipe Functions
 void * pipeMain(void * rcvData);
 
@@ -35,4 +34,5 @@ void handleCommand(char * str, ClientsData * Data);
 void invalidCommand(char * command);
 void console(ClientsData * Data);
 
+// EnemyFuncs
 #endif /* SERVER_H */
