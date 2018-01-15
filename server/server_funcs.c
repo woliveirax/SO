@@ -3,6 +3,7 @@
 #include "../server_support_funcs/server_support_funcs.h"
 
 int TotalEnemy = 3;
+int RadiousVision = 8;
 
 void movEnemyforPosition(Map *orig, Map *dest){
 
@@ -20,6 +21,76 @@ left,   // up
 right   // down
 };
 */
+
+int verifyRadiousVision(Enemy *enemy){
+  srand(time(0));
+  int x = enemy->posx, y = enemy->posy;
+//verifica player top
+  if ( y - RadiousVision < 0){
+    for ( int posy =  y ; posy == 0; posy-- ){
+      if ( global_map->map[x][posy].type == PLAYER ){
+        printf("\nup");
+        return up;
+      }
+    }
+  } else {
+      for ( int posy = y; posy == y - RadiousVision; posy--){
+        if (global_map->map[x][posy].type == PLAYER){
+          printf("\nup");
+          return up;
+        }
+      }
+  }
+  //verify player down
+  if  ( y + RadiousVision > 30){
+    for ( int posy = y; posy == 30; posy++){
+      if ( global_map->map[x][posy].type == PLAYER){
+        printf("\ndown");
+        return down;
+      }
+    }
+  } else {
+    for ( int posy = y ; posy == y + RadiousVision; posy++)
+      if ( global_map->map[x][posy].type == PLAYER){
+        printf("\ndown");
+        return down;
+      }
+  }
+  // verify player left
+  if ( x - RadiousVision < 0){
+    for ( int posx = x; posx == 0 ; posx--){
+      if ( global_map->map[posx][y].type == PLAYER){
+        printf("\nleft");
+        return left;
+      }
+    }
+  } else {
+    for ( int posx = x; posx == x - RadiousVision; posx--){
+      if ( global_map->map[posx][y].type == PLAYER){
+        printf("\nleft");
+        return left;
+      }
+    }
+  }
+  //verify player right
+  if ( x + RadiousVision > 20){
+    for ( int posx = x; posx == 20; posx++){
+      if ( global_map->map[posx][y].type == PLAYER){
+          printf("\nright");
+        return right;
+      }
+    }
+  } else {
+    for ( int posx = x; posx == x + RadiousVision; posx++){
+      if ( global_map->map[posx][y].type == PLAYER){
+        printf("\nright");
+        return right;
+      }
+    }
+  }
+  return rand()%4;
+}
+
 void * Move_Enemy(void * enemy){
 
 int orientation = 0;
@@ -32,32 +103,40 @@ srand(time(0));
 
 while (enemY->alive == 1){
 
-  orientation = rand()%4;
+  orientation = verifyRadiousVision(enemY);//rand()%4;
 
-  switch ( orientation ){
-    case up:
-      if(y - 1  >= 0 && global_map->map[x][y-1].type == FREE || global_map->map[x][y-1].type  == PLAYER){
+  switch ( orientation )
+  {
+    case left:
+      if(y - 1  >= 0)
+        if(global_map->map[x][y-1].type == FREE || global_map->map[x][y-1].type  == PLAYER){
           movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y-1]);
           y = y - 1;
         }
       break;
-    case down:
-      if (y + 1 < 20 && global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type  == PLAYER){
+
+    case right:
+      if (y + 1 < 31)
+        if(global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type  == PLAYER){
         movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y+1]);
         y = y + 1;
       }
       break;
-    case left:
-      if ( x - 1 >= 0 && global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type  == PLAYER){
+
+    case up:
+      if ( x - 1 >= 0)
+        if(global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type  == PLAYER){
           movEnemyforPosition(&global_map->map[x][y], &global_map->map[x-1][y]);
           x = x-1;
-    }
+        }
     break;
-    case right:
-      if ( x + 1 < 30 && global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type  == PLAYER){
-        movEnemyforPosition(&global_map->map[x][y], &global_map->map[x+1][y]);
-        x = x+1;
-    }
+
+    case down:
+      if ( x + 1 < 21)
+        if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type  == PLAYER){
+          movEnemyforPosition(&global_map->map[x][y], &global_map->map[x+1][y]);
+          x = x+1;
+        }
     break;
   }
   sendMapToClients(global_clients);
@@ -399,26 +478,6 @@ void moveToPos(Client * cli,Map * orig, Map * dest, int orientation)
   }
 }
 
-int posValid(Client * cli, int orientation, int x, int y)
-{
-  if(global_map->map[x][y].type == FREE || global_map->map[x][y].type == ENEMY)
-    return 1;
-
-  cli->player->orientation = orientation;
-  return 0;
-}
-
-int jump(int x1, int x2, int y1, int y2)
-{
-  int avoid[4] = {WALL,BOMB,MEGABOMB,EXIT};
-
-  for(int i = 0; i < 4 ; i++)
-    if(global_map->map[x1][y1].type == avoid[i] || global_map->map[x2][y2].type == avoid[i])
-      return 0;
-
-  return 1;
-}
-
 void plantBomb(Map * pos, int size)
 {
   if(size == small)
@@ -465,8 +524,8 @@ while(t < 4)
     {
       if(global_map->map[i][y].type == PLAYER)
       {
-        sendDeathToClient(global_map->map[i][y].player.PID);
-        global_map->map[i][y].type = FREE;
+        //sendDeathToClient(global_map->map[i][y].player.PID);
+        //global_map->map[i][y].type = FREE;
       }
       else if(global_map->map[x][i].type == ENEMY)
       {
@@ -492,8 +551,8 @@ while(t < 4)
     {
       if(global_map->map[x][i].type == PLAYER)
       {
-        sendDeathToClient(global_map->map[x][i].player.PID);
-        global_map->map[i][y].type = FREE;
+        //sendDeathToClient(global_map->map[x][i].player.PID);
+        //global_map->map[i][y].type = FREE;
       }
       else if(global_map->map[x][i].type == ENEMY)
       {
@@ -562,48 +621,56 @@ void * bombAction (void * param)
   free(info);
 }
 
+int posValid(Client * cli, int orientation, int x, int y)
+{
+  if(global_map->map[x][y].type == FREE || global_map->map[x][y].type == ENEMY)
+    return 1;
+
+  cli->player->orientation = orientation;
+  return 0;
+}
+
+int jump(int x1, int x2, int y1, int y2)
+{
+  int avoid[4] = {WALL,BOMB,MEGABOMB,EXIT};
+
+  for(int i = 0; i < 4 ; i++)
+    if(global_map->map[x1][y1].type == avoid[i] || global_map->map[x2][y2].type == avoid[i])
+      return 0;
+
+  return 1;
+}
+
 void validaMovimentos(Client * cli, int mov)
 {
 
-  bombParam * BP;
-
   int x = cli->player->posx, y = cli->player->posy;
-  printf("X: %d Y: %d\n",x,y);
+  bombParam * BP;
 
   switch(mov)
   {
     case COMMAND_LEFT:
-      //if(global_map->map[x][y-1].type == FREE)
-        if((y - 1) >= 0){
-          //global_map->map[x][y].player.orientation = left;
+      if((y - 1) >= 0)
+        if(posValid(cli,left,x,y-1))
           moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-1],left);
-
-        }
     break;
 
     case COMMAND_RIGHT:
-      //if(global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type == ENEMY)
-      if(y+1 < 31){
-        //global_map->map[x][y].player.orientation = right;
-        moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+1], right);
-      }
-
+    if(y+1 < 31)
+      if(posValid(cli,right,x,y+1))
+          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+1], right);
     break;
 
     case COMMAND_UP:
-      if(x-1 >= 0){
-      //global_map->map[x][y].player.orientation = up;
-      //if(global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type == ENEMY)
-      moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y], up);
-      }
+        if(x-1 >= 0)
+          if(posValid(cli,up,x-1,y))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x-1][y], up);
     break;
 
     case COMMAND_DOWN:
-      if(x+1 < 21){
-        //mglobal_map->map[x][y].player.orientation = down;
-        moveToPos(cli,&global_map->map[x][y],&global_map->map[x+1][y], down);
-      }
-      //if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type == ENEMY)
+      if(x+1 < 21)
+        if(posValid(cli,down,x+1,y))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x+1][y], down);
     break;
 
     case COMMAND_SMALLBOMB:
