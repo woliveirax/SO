@@ -180,6 +180,12 @@ void GAME_START(Client_data *info){
       case COMMAND_JUMP:
         sendCommandToServer(key, info);
         break;
+      case COMMAND_SMALLBOMB:
+        sendCommandToServer(key, info);
+        break;
+      case COMMAND_BIGBOMB:
+        sendCommandToServer(key, info);
+        break;
       case  '\n':
         writeChatMessenger(info);
         break;
@@ -524,6 +530,10 @@ void * receive_from_server( void * info)
       case SERVER_MAP:
         atualizaMapViewer(info, &Package_Server);
       break;
+      case USER_DIE:
+
+      break;
+
       }
   }
 }

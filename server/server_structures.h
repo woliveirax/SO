@@ -6,12 +6,6 @@
 #define MAX 50
 #define MAX_CLI 20
 
-typedef struct bomb_thread_param
-{
-  int size;
-  Player * player;
-}bombParam;
-
 typedef struct BOMB {
   pthread_t bomb_id;
   int posx,posy;          //Posição da bomba (ainda nao definida)
@@ -32,6 +26,13 @@ typedef struct client {
   Player *player;             //Ponteiro para o boneco do jogador
 
 } Client;
+
+typedef struct bomb_thread_param
+{
+  pthread_t id;
+  int size;
+  Client * player;
+}bombParam;
 
 typedef struct RCVED_DATA {
   Client clients[MAX_CLI];    //Guarda array de clientes ligados ao servidor

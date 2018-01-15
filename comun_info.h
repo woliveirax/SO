@@ -42,13 +42,14 @@ enum MessageType {
   USER_REQUEST_LOGOUT,  //pedido de logout pelo utilizador
   USER_CHAT,            //Mensagem de chat
   USER_PLAY,            //Mensagem de inicio de jogo
-  USER_QUIT             //Mensagem de quit do jogo mas nao da aplicacao.
+  USER_QUIT,             //Mensagem de quit do jogo mas nao da aplicacao.
+  USER_DIE
 };
 
 enum Bomb_size {
   small = 2,
   bomb = 4
-}
+};
 
 //Resposta DA MENSAGEM USER_AUTH
 enum User_Auth_Resp {
