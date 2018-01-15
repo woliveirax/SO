@@ -527,7 +527,11 @@ while(t < 4)
         //sendDeathToClient(global_map->map[i][y].player.PID);
         //global_map->map[i][y].type = FREE;
       }
-      else if(global_map->map[x][i].type == ENEMY)
+      else if(global_map->map[i][y].type == ENEMY)
+      {
+        //TODO:
+      }
+      else if(global_map->map[i][y].type == IRON_WALL)
       {
         //TODO:
       }
@@ -555,6 +559,10 @@ while(t < 4)
         //global_map->map[i][y].type = FREE;
       }
       else if(global_map->map[x][i].type == ENEMY)
+      {
+        //TODO:
+      }
+      else if(global_map->map[x][i].type == IRON_WALL)
       {
         //TODO:
       }
@@ -731,7 +739,7 @@ void readData(ClientsData * Data,int serverFD)
   Enemy *enemy;
   Client * client;
   Package_Cli package_cli;
-  //printf(" X: %d Y: %d\n",global_map->map[10][10].player.posx,global_map->map[10][10].player.posx);
+  
   read(serverFD,&package_cli,sizeof(Package_Cli));
   client = getUserByPID(Data,package_cli.PID);
 
@@ -746,7 +754,6 @@ void readData(ClientsData * Data,int serverFD)
       break;
 
     case USER_PLAY:
-    printf(" X: %d Y: %d\n",global_map->map[10][10].player.posx,global_map->map[10][10].player.posx);
       if(!game)
       {
         generateMap(1);
