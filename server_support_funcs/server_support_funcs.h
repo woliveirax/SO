@@ -19,10 +19,12 @@ pthread_mutex_t map_send;
 ClientsData * global_clients;
 gameInfo * global_map;
 Enemy *enemy;
+int mapImported;
 
 bool game;
 
 int help(int argc, char *argv[]);
+void loadMap(int argc, char * argv[]);
 int addUser (int argc, char *argv[]);
 void showCurrentUsers(int argc, char * argv[], ClientsData Data);
 void serverShutdown();

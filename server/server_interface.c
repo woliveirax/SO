@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
   global_map = initMapPackage();
   global_clients = malloc(sizeof(ClientsData));
   global_clients->nClients = 0;
+  mapImported = 0;
+
   clearScreen();
 
   pthread_t thread_id;

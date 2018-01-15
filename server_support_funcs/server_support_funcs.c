@@ -181,6 +181,50 @@ int kickUser(int argc, char * argv[],ClientsData * Data)
 }
 
 //####################################################################################
+// NOTE LOAD MAP FUNCTION
+
+void loadMap(int argc, char * argv[])
+{
+  if(argc != 2)
+  {
+    fprintf(stderr,"\nmodo de uso: %s\n",argv[0]);
+    return;
+  }
+
+  FILE * file;
+  int type;
+
+  file = fopen(argv[1],"rt");
+  if(file == NULL)
+  {
+    printf("Erro ao abrir o ficheiro %s!\n",argv[1]);
+    return;
+  }
+
+  for(int x = 0; x < 21; x++)
+    for(int y = 0; y < 31; y++)
+    {
+      type = fgetc(file);
+      if(type != '\n')
+        global_map->map[x][y].type = type;
+
+    }
+
+
+  for(int x = 0; x < 21; x++)
+  {
+    printf("\n");
+    for(int y = 0; y < 31; y++)
+      printf("%c",global_map->map[x][y].type);
+  }
+
+  printf("Mapa carregado!\n");
+  mapImported = 1;
+
+  fclose(file);
+}
+
+//####################################################################################
 // NOTE show users function
 
 void showCurrentUsers(int argc, char * argv[], ClientsData Data)

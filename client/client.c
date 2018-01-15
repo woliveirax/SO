@@ -315,24 +315,24 @@ void check_options_login(Client_data *info)
   switch (info->LOGIN_CONFIRMATION)
   {
     case USER_LOGIN_ACCEPTED:
-      printf("\nLogin successfully. Now you are logged in..!\n");
+      printf(BOLDGREEN "\nLogin successfully. Now you are logged in..!\n" RESET);
       USER_MENU(info);
       break;
 
     case USER_LOGIN_WRONG_PASS:
-      printf("\nWrong User password..! Try Again.\n");
+      printf(BOLDRED "\nWrong User password..! Try Again.\n"RESET);
       break;
 
     case USER_DOESNT_EXIST:
-      printf("\n\nThis user does not exist, please try with another account\n\n");      // TODO fazer a mensagem request create user para admin;
+      printf(BOLDRED"\n\nThis user does not exist, please try with another account\n\n"RESET);      // TODO fazer a mensagem request create user para admin;
       break;
 
     case USER_ALREADY_IN:
-      printf("\nThe player is already logged in..!\n");
+      printf(BOLDRED"\nThe player is already logged in..!\n"RESET);
       break;
 
     case SERVER_FULL:
-      printf ("\nServer Full. Try again later ...\n");
+      printf (BOLDYELLOW"\nServer Full. Try again later ...\n"RESET);
       break;
   }
   return;
@@ -416,7 +416,6 @@ void CLIENT_LOGIN_( Client_data *info)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CLIENT_EXIT(Client_data *info)
 {
-
   close(info->FD_SERVER_PIPE);
   unlink(info->CLIENT_PIPE);
   exit(0);
@@ -513,16 +512,19 @@ void * receive_from_server( void * info)
         pthread_cond_signal(&info_client->AWAITED_REPLY_LOGIN);
         break;
       case SERVER_SHUTDOWN:
-        printf ("\n\nYour connection will shut down because the server will shut down in a few moments.\n\n");
+        endwin();
+        printf (YELLOW"\n\nYour connection will shut down because the server will shut down in a few moments.\n\n"RESET);
         lerServidor = 0;
         CLIENT_EXIT(info);
         break;
       case LOGOUT_RESPONSE:
-        printf ("\n\n Successful logout..!\n\n");
+        endwin();
+        printf (GREEN"\n\n Successful logout..!\n\n"RESET);
         CLIENT_EXIT(info);
         break;
       case SERVER_KICK:
-        printf("\nYou've been kicked from the server.\n");
+        endwin();
+        printf(BOLDRED"\nYou've been kicked from the server.\n"RESET);
         CLIENT_EXIT(info);
         break;
       case SERVER_CHAT:
@@ -530,9 +532,6 @@ void * receive_from_server( void * info)
         break;
       case SERVER_MAP:
         atualizaMapViewer(info, &Package_Server);
-      break;
-      case USER_DIE:
-
       break;
 
       }
@@ -548,7 +547,7 @@ void verify_server()
 {
   if(access(SERVER_PIPE,F_OK) < 0){
 
-    printf (" \n\nServer Is Down, try later..!\n\n");
+    printf (BOLDRED" \n\nServer Is Down, try later..!\n\n"RESET);
 
     exit(0);
   }
@@ -586,7 +585,7 @@ void Client_console()
 void HandleSignal(int s){
   if(s == SIGINT)
   {
-    printf("Please, choose exit to leave!\n");
+    printf(BOLDRED"Please, choose exit to leave!\n"RESET);
     return;
   }
 

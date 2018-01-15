@@ -739,7 +739,7 @@ void readData(ClientsData * Data,int serverFD)
   Enemy *enemy;
   Client * client;
   Package_Cli package_cli;
-  
+
   read(serverFD,&package_cli,sizeof(Package_Cli));
   client = getUserByPID(Data,package_cli.PID);
 
@@ -756,7 +756,11 @@ void readData(ClientsData * Data,int serverFD)
     case USER_PLAY:
       if(!game)
       {
-        generateMap(1);
+        if(mapImported == 0)
+        {
+          generateMap(1);
+        }
+
         enemy = CreateEnemy();
         putEnemyInMap(enemy);
         startEnemyMove(enemy);
@@ -910,7 +914,7 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if(strcmp(command,"map") == 0)
   {
-    printf("Mapa!!!");
+    loadMap(argc,arguments);
   }
   else if(strcmp(command,"help") == 0)
   {
@@ -958,11 +962,11 @@ void console(ClientsData * Data)
   //TODO trata sinais
   setbuf(stdout,NULL);
 
-  printf("\n\nServer Console: [Admin]\n");
+  printf(BOLDWHITE "\n\nServer Console:" BOLDMAGENTA " [Admin]" RESET "\n");
 
   while(1) //Mudar para do while ?
   {
-    printf("\n$: ");
+    printf(BOLDMAGENTA "\n$: " RESET);
 
     fscanf(stdin," %299[^\n]",buffer);
 
