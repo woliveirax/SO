@@ -28,6 +28,13 @@ typedef struct client {
 
 } Client;
 
+typedef struct bomb_thread_param
+{
+  pthread_t id;
+  int size;
+  Client * player;
+}bombParam;
+
 typedef struct RCVED_DATA {
   Client clients[MAX_CLI];    //Guarda array de clientes ligados ao servidor
   int nClients;               //Contador de jogadores

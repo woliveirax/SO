@@ -331,11 +331,14 @@ void generateMap(int complexity)
 
 void sendMapToClients(ClientsData * data)
 {
+  pthread_mutex_lock(&map_send);
   global_map->type = SERVER_MAP;
   for(int i = 0; i < data->nClients; i++)
     if(data->clients[i].inGame)
       if(write(data->clients[i].FD,global_map,sizeof(gameInfo)) == -1)
         printf("Erro ao mandar mapa ao cliente %s...\n",data->clients[i].username);
+
+  pthread_mutex_unlock(&map_send);
 }
 
 void getFreeMapPos(Client * cli)
@@ -353,6 +356,8 @@ void getFreeMapPos(Client * cli)
   cli->player = &map->player;
   map->player.PID = cli->PID;
   map->player.orientation = left;
+  map->player.bomb = 2;
+  map->player.megabomb = 1;
 
   pthread_mutex_unlock(&map_token);
 
@@ -360,16 +365,207 @@ void getFreeMapPos(Client * cli)
 
 void moveToPos(Client * cli,Map * orig, Map * dest, int orientation)
 {
+
+  if(orig->type == BOMB || orig->type == MEGABOMB)
+  {
+    pthread_mutex_lock(&map_token);
+    dest->type = PLAYER;
+    dest->player.orientation = orientation;
+    cli->player = &dest->player;
+    pthread_mutex_unlock(&map_token);
+    dest->player.bomb = orig->player.bomb;
+    dest->player.megabomb = orig->player.megabomb;
+  }
+  else if(dest->type != EXIT)
+  {
+    pthread_mutex_lock(&map_token);
+    orig->type = FREE;
+    dest->type = PLAYER;
+    dest->player.orientation = orientation;
+    cli->player = &dest->player;
+    pthread_mutex_unlock(&map_token);
+    dest->player.bomb = orig->player.bomb;
+    dest->player.megabomb = orig->player.megabomb;
+  }
+  else
+  {
+    pthread_mutex_lock(&map_token);
+    orig->type = FREE;
+    dest->player.orientation = orientation;
+    cli->player = &dest->player;
+    pthread_mutex_unlock(&map_token);
+    dest->player.bomb = orig->player.bomb;
+    dest->player.megabomb = orig->player.megabomb;
+  }
+}
+
+int posValid(Client * cli, int orientation, int x, int y)
+{
+  if(global_map->map[x][y].type == FREE || global_map->map[x][y].type == ENEMY)
+    return 1;
+
+  cli->player->orientation = orientation;
+  return 0;
+}
+
+int jump(int x1, int x2, int y1, int y2)
+{
+  int avoid[4] = {WALL,BOMB,MEGABOMB,EXIT};
+
+  for(int i = 0; i < 4 ; i++)
+    if(global_map->map[x1][y1].type == avoid[i] || global_map->map[x2][y2].type == avoid[i])
+      return 0;
+
+  return 1;
+}
+
+void plantBomb(Map * pos, int size)
+{
+  if(size == small)
+    pos->type = BOMB;
+  else
+    pos->type = MEGABOMB;
+}
+
+void sendDeathToClient(int pid)
+{
+  Client * c = getUserByPID(global_clients,pid);
+  c->player = NULL;
+  userLeavesGame(global_clients,c->PID);
+  pthread_mutex_lock(&map_send);
+  global_map->type = USER_DIE;
+  if(write(c->FD,global_map,sizeof(gameInfo)) == -1)
+    perror("Impossivel enviar kill ao cliente.");
+  pthread_mutex_unlock(&map_send);
+}
+
+void explode(Client * cli, int x,int y, int size)
+{
+  //Explode up n down
+  int initx,endx,inity,endy;
+  int t = 0;
+  Client * c = NULL;
+
+while(t < 4)
+{
+    usleep(1000*500);
+    t++;
+
+    if(x - size < 0)
+      initx = 0;
+    else
+      initx = x - size;
+
+    if(x+size > 20)
+      endx = 20;
+    else
+      endx = x+size;
+
+    for(int i = initx; i < endx; i++)
+    {
+      if(global_map->map[i][y].type == PLAYER)
+      {
+        sendDeathToClient(global_map->map[i][y].player.PID);
+        global_map->map[i][y].type = FREE;
+      }
+      else if(global_map->map[x][i].type == ENEMY)
+      {
+        //TODO:
+      }
+      else
+      {
+        global_map->map[i][y].type = EXPLOSION;
+      }
+    }
+
+    if(y - size < 0)
+      inity = 0;
+    else
+      inity = y-size;
+
+    if(y + size > 30)
+      endy = 30;
+    else
+      endy = y+size;
+
+    for(int i = inity; i < endy; i++)
+    {
+      if(global_map->map[x][i].type == PLAYER)
+      {
+        sendDeathToClient(global_map->map[x][i].player.PID);
+        global_map->map[i][y].type = FREE;
+      }
+      else if(global_map->map[x][i].type == ENEMY)
+      {
+        //TODO:
+      }
+      else
+      {
+        global_map->map[x][i].type = EXPLOSION;
+      }
+    }
+    sendMapToClients(global_clients);
+  }
+  for(int i = initx; i < endx; i++)
+    if(global_map->map[i][y].type == EXPLOSION)
+      global_map->map[i][y].type = FREE;
+
+  for(int i = inity; i < endy; i++)
+    if(global_map->map[x][i].type == EXPLOSION)
+      global_map->map[x][i].type = FREE;
+
+  sendMapToClients(global_clients);
+}
+
+//Funções da bomba
+void * bombAction (void * param)
+{
+  bombParam * info = (bombParam *) param;
+
+  int size = info->size;
+  Client * cli = info->player;
+  int x = cli->player->posx;
+  int y = cli->player->posy;
+  Map * bombPos = &global_map->map[x][y];
+
+  if(size == small)
+  {
+    if(cli->player->bomb < 1)
+      return NULL;
+
+    (cli->player->bomb)--;
+  }
+  else
+  {
+    if(cli->player->megabomb < 1)
+      return NULL;
+
+    (cli->player->megabomb)--;
+  }
+
   pthread_mutex_lock(&map_token);
-  orig->type = FREE;
-  dest->type = PLAYER;
-  dest->player.orientation = orientation;
-  cli->player = &dest->player;
+  plantBomb(bombPos,size);
   pthread_mutex_unlock(&map_token);
+
+  sleep(2);
+
+  //pthread_mutex_lock(&map_token);
+  explode(cli,x,y,size);
+  //pthread_mutex_unlock(&map_token);
+  if(cli->player != NULL)
+    if(cli->inGame == 1)
+      if(size == small)
+        (cli->player->bomb)++;
+      else
+        (cli->player->megabomb)++;
+
+  free(info);
 }
 
 void validaMovimentos(Client * cli, int mov)
 {
+
+  bombParam * BP;
 
   int x = cli->player->posx, y = cli->player->posy;
   printf("X: %d Y: %d\n",x,y);
@@ -410,15 +606,41 @@ void validaMovimentos(Client * cli, int mov)
       //if(global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type == ENEMY)
     break;
 
+    case COMMAND_SMALLBOMB:
+      BP = malloc(sizeof(bombParam));
+      BP->player = cli;
+      BP->size = small;
+      pthread_create(&BP->id,NULL,bombAction,(void *) BP);
+    break;
+
+    case COMMAND_BIGBOMB:
+      BP = malloc(sizeof(bombParam));
+      BP->player = cli;
+      BP->size = 4;
+      pthread_create(&BP->id,NULL,bombAction,(void *) BP);
+    break;
+
     case COMMAND_JUMP:
-        if ( global_map->map[x][y].player.orientation == left && y - 2 >= 0)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
-        else if ( global_map->map[x][y].player.orientation == right & y+2 <= 31)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
+        if (global_map->map[x][y].player.orientation == left && y - 2 >= 0)
+        {
+          if(jump(x,x,y-1,y-2))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y-2], left);
+        }
+        else if ( global_map->map[x][y].player.orientation == right & y+2 <= 30)
+        {
+          if(jump(x,x,y+1,y+2))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x][y+2], right);
+        }
         else if ( global_map->map[x][y].player.orientation == up && x-2 >= 0)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
-        else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 21)
-          moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
+        {
+          if(jump(x-1,x-2,y,y))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x-2][y], up);
+        }
+        else if  ( global_map->map[x][y].player.orientation == down && x+2 <= 20)
+        {
+          if(jump(x+1,x+2,y,y))
+            moveToPos(cli,&global_map->map[x][y],&global_map->map[x+2][y], down);
+        }
 
     break;
   }
@@ -432,6 +654,10 @@ void userMovement(ClientsData * data, Package_Cli pkg)
 
   sendMapToClients(data);
 }
+
+//################################################################################################
+//################################ Fim de funções de jogo
+//################################################################################################
 
 void readData(ClientsData * Data,int serverFD)
 {

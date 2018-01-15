@@ -47,16 +47,15 @@ int main(int argc, char *argv[])
   signal(SIGINT,HandleSignal);
 
   pthread_mutex_init(&map_token,NULL);
+  pthread_mutex_init(&map_send,NULL);
 
-  ClientsData data;
-  data.nClients = 0;
-  global_clients = &data;
   global_map = initMapPackage();
-
+  global_clients = malloc(sizeof(ClientsData));
+  global_clients->nClients = 0;
   clearScreen();
 
   pthread_t thread_id;
-  pthread_create(&thread_id,NULL,pipeMain,(void *) &data);
+  pthread_create(&thread_id,NULL,pipeMain,(void *) global_clients);
 
-  console(&data);
+  console(global_clients);
 }

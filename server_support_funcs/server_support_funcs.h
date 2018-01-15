@@ -14,6 +14,7 @@
 #include "../server/server_structures.h"
 
 pthread_mutex_t map_token;
+pthread_mutex_t map_send;
 
 ClientsData * global_clients;
 gameInfo * global_map;

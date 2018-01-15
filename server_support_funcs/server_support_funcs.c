@@ -236,6 +236,7 @@ void serverShutdown()
   sendfromserverShutdown(global_clients);
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
   free(global_map);
+  free(global_clients);
 
   //TODO espera threads;
 
