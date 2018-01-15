@@ -3,153 +3,68 @@
 #include "../server_support_funcs/server_support_funcs.h"
 
 int TotalEnemy = 3;
-int RadiousVision = 2;
-/*
-void sendMapForClients(){
-  int i = 0;
-  while (global_clients[i].PID != NULL){
 
-    global_map->type = SERVER_MAP;
-      if(global_clients[i].inGame)
-        if(write(global_clients[i].FD,global_map,sizeof(gameInfo)) == -1)
-          printf("Erro ao mandar mapa ao cliente %s...\n",global_clients[i].username);
+void movEnemyforPosition(Map *orig, Map *dest){
 
-  i++;
-  }
-}
-*/
-
-
-int movEnemyforPosition(Map *orig, Map *dest){
-  int jmpNextPos = 0;
   pthread_mutex_lock(&map_token);
-  //if ( dest->type == FREE || dest->type == PLAYER){
-    dest->type=ENEMY;
-    orig->type=FREE;
-    printf ("\n\n\n\nCHEGUEI AQUIIIII\n\n");
-    jmpNextPos = 1;
-  //}
+  orig->type=FREE;
+  dest->type=ENEMY;
   pthread_mutex_unlock(&map_token);
-  return jmpNextPos;
 }
+/* NA FUNCAO MOVE ENEMY AS DIREÇOES FICARAM AO CONTRARIO
+enum ORIENTATION {
 
-int verifyRadiousVision(Enemy *enemy){
-  srand(time(0));
-  int x = enemy->posx, y = enemy->posy;
-  printf( "\nx = %d", x);
-  printf ("\ny = %d", y);
-  printf ("\nteste2\n");
-//verifica player top
-  if ( y - RadiousVision < 0){
-    for ( int posy =  y ; posy == 0; posy-- ){
-      if ( global_map->map[x][posy].type == PLAYER )
-        return up;
-    }
-  } else {
-      for ( int posy = y; posy == y - RadiousVision; posy--){
-        if (global_map->map[x][posy].type == PLAYER)
-          return up;
-      }
-  }
-  //verify player down
-  if  ( y + RadiousVision > 30){
-    for ( int posy = y; posy == 30; posy++){
-      if ( global_map->map[x][posy].type == PLAYER)
-        return down;
-    }
-  } else {
-    for ( int posy = y ; posy == y + RadiousVision; posy++)
-      if ( global_map->map[x][posy].type == PLAYER)
-        return down;
-  }
-  // verify player left
-  if ( x - RadiousVision < 0){
-    for ( int posx = x; posx == 0 ; posx--){
-      if ( global_map->map[posx][y].type == PLAYER)
-        return left;
-    }
-  } else {
-    for ( int posx = x; posx == x - RadiousVision; posx--){
-      if ( global_map->map[posx][y].type == PLAYER)
-        return left;
-    }
-  }
-  //verify player right
-  if ( x + RadiousVision > 20){
-    for ( int posx = x; posx == 20; posx++){
-      if ( global_map->map[posx][y].type == PLAYER)
-        return right;
-    }
-  } else {
-    for ( int posx = x; posx == x + RadiousVision; posx++){
-      if ( global_map->map[posx][y].type == PLAYER)
-        return right;
-    }
-  }
-  return rand()%4;
-}
-
+up = 0, // left
+down,   // right
+left,   // up
+right   // down
+};
+*/
 void * Move_Enemy(void * enemy){
 
-  int orientation = 0;
-  int x = 0, y = 0;
-  Enemy *enemY = ( Enemy *) enemy;
-  enemY->alive = 1;
-  x = enemY->posx;
-  y = enemY->posy;
+int orientation = 0;
+int x = 0, y = 0;
+Enemy *enemY = ( Enemy *) enemy;
+enemY->alive = 1;
+y = enemY->posx;
+x = enemY->posy;
+srand(time(0));
 
-  while (enemY->alive == 1){
+while (enemY->alive == 1){
 
-    orientation = verifyRadiousVision(enemY);
-    printf ("\nOrientacao = %d\n", orientation);
+  orientation = rand()%4;
 
-    switch ( orientation ){
-
-      case up:
-        if(y - 1  > 0){
-        printf ("\ndown posx = %d  posy = %d\n",x,y);
-        printf ("\ndown posx = %d  posy = %d\n",x,y-1);
-          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y-1]) == 1){
-            enemY->posx = x;
-            enemY->posy = y - 1;
-          }
+  switch ( orientation ){
+    case up:
+      if(y - 1  >= 0 && global_map->map[x][y-1].type == FREE || global_map->map[x][y-1].type  == PLAYER){
+          movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y-1]);
+          y = y - 1;
         }
-        break;
-      case down:
-        if (y + 1 < 31){
-          printf ("\ndown posx = %d  posy = %d\n",x,y);
-          printf ("\ndown posx = %d  posy = %d\n",x,y+1);
-          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y+1]) == 1){
-          enemY->posx = x;
-          enemY->posy = y + 1;
-          }
-        }
-        break;
-      case left:
-        if ( x - 1 > 0){
-        printf ("\ndown posx = %d  posy = %d\n",x,y);
-        printf ("\ndown posx = %d  posy = %d\n",x-1,y);
-          if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x-1][y]) == 1){
-            enemY->posx = x-1;
-            enemY->posy = y;
-        }
+      break;
+    case down:
+      if (y + 1 < 20 && global_map->map[x][y+1].type == FREE || global_map->map[x][y+1].type  == PLAYER){
+        movEnemyforPosition(&global_map->map[x][y], &global_map->map[x][y+1]);
+        y = y + 1;
       }
       break;
-      case right:
-        if ( x + 1 < 31){
-        printf ("\ndown posx = %d  posy = %d\n",x,y);
-        printf ("\ndown posx = %d  posy = %d\n",x+1,y);
-        if ( movEnemyforPosition(&global_map->map[x][y], &global_map->map[x+1][y]) == 1){
-          enemY->posx = x+1;
-          enemY->posy = y;
-        }
-      }
-      break;
+    case left:
+      if ( x - 1 >= 0 && global_map->map[x-1][y].type == FREE || global_map->map[x-1][y].type  == PLAYER){
+          movEnemyforPosition(&global_map->map[x][y], &global_map->map[x-1][y]);
+          x = x-1;
     }
-    sendMapToClients(global_clients);
-    sleep(1);
+    break;
+    case right:
+      if ( x + 1 < 30 && global_map->map[x+1][y].type == FREE || global_map->map[x+1][y].type  == PLAYER){
+        movEnemyforPosition(&global_map->map[x][y], &global_map->map[x+1][y]);
+        x = x+1;
+    }
+    break;
   }
+  sendMapToClients(global_clients);
+  usleep(1000*400);
 }
+}
+
 void startEnemyMove(Enemy *enemy){
   for (int i = 0; i < TotalEnemy; i++){  //TODO POR THREADS
     pthread_create(&enemy[i].enemy_ID, NULL, Move_Enemy, (void *) &enemy[i]);
@@ -269,6 +184,7 @@ void addClientToArray(ClientsData * Data, Client cli)
   Data->clients[Data->nClients] = cli;
   Data->clients[Data->nClients].inGame = 0;
   (Data->nClients)++;
+
 }
 
 
@@ -597,7 +513,17 @@ void freeSpace(char **array)
   }
   free(array);
 }
+void ShowAmbientEnviron(){
 
+  extern char **environ;
+  int i= 0;
+  while (environ[i]) {
+    if (environ[i][0] == 'n')
+      printf("%s\n", environ[i++]);
+    else
+      i++;
+  }
+}
 char ** getComandAndArguments(char * string, char ** command, int * argQuant)
 {
   char *argument;
@@ -696,7 +622,7 @@ void handleCommand(char * str, ClientsData * Data)
   }
   else if( strcmp(command, "env") == 0)
   {
-    printf ("\nAvailable in a few days\n");
+    ShowAmbientEnviron();
   }
   else
   {
@@ -711,14 +637,27 @@ void invalidCommand(char * command)
 {
   fprintf(stderr,"O comando:\' %s \' nao existe. utilize help para ajuda!",command);
 }
+void createRnvironmentVariables(){
+
+  char objects[9] = "nObjects";
+  char nobjects[2] = "00";
+  char ENEMYS[6] = "nEnemy";
+  char nENEMYS[2] = "03";
+  char PLAYERS[11] = "nMaxPlayers";
+  char nPLAYERS[2] = "20";
+  setenv(objects,nobjects, 1);
+  setenv(ENEMYS,nENEMYS, 1);
+  setenv(PLAYERS,nPLAYERS, 1);
+}
 
 void console(ClientsData * Data)
 {
   //create_environment_variables();
   char buffer[buffer_size];
-
+  createRnvironmentVariables();
   //TODO trata sinais
   setbuf(stdout,NULL);
+
   printf("\n\nServer Console: [Admin]\n");
 
   while(1) //Mudar para do while ?
