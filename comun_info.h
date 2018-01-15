@@ -176,6 +176,4 @@ typedef struct GAMEINFO {
   int time;
 } gameInfo;
 
-
-
 #endif /* COMUN_INFO_H */

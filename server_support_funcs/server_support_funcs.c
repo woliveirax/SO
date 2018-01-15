@@ -237,9 +237,7 @@ void serverShutdown()
   unlink(SERVER_PIPE);//TODO TROCAR ISTO
   free(global_map);
   free(global_clients);
-
-  //TODO espera threads;
-
+  free(enemy);
   exit(0);
   //TODO fechar pipes cliente;
   //TODO unlink do pipe servidor

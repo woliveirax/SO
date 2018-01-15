@@ -18,6 +18,8 @@ pthread_mutex_t map_send;
 
 ClientsData * global_clients;
 gameInfo * global_map;
+Enemy *enemy;
+
 bool game;
 
 int help(int argc, char *argv[]);
