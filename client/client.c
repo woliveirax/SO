@@ -257,6 +257,7 @@ void CREATE_SPACE_GAME(Client_data *info)
   delwin(info->CHATLIMVIEWER);
   delwin(info->CHATWRITER);
   endwin();
+  return;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Envia Mensagem para Servidor a informar que vai começar a jogar
