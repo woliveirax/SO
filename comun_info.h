@@ -101,10 +101,10 @@ typedef struct PACKAGE_CLIENTE
 
 enum ORIENTATION {
 
-  up = 0,
-  down,
-  left,
-  right
+  up = 0, // left
+  down,   // right
+  left,   // up
+  right   // down
 };
 //Mensagens de controlo do servidor
 enum cellType {
